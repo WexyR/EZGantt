@@ -13,30 +13,30 @@ class Actor {
 
     //getters 
 
-    public getName(){
+    public getName() : string{
         return this.name;
     }
 
-    private static getIdGen(){
+    private static getIdGen() : number{
         let Id = Actor.IdGen;
         Actor.IdGen+=1;
         return Id;
     }
 
-    public getBirthday(){
+    public getBirthday() : Date {
         return this.birthday;
     }
 
-    public getId(){
+    public getId() : number{
         return this.Id ;
     }
 
     // setters
-    public setName( n : string){
+    public setName( n : string) : void{
         this.name = n;
     }
 
-    public setBirthday( birthday : Date){
+    public setBirthday( birthday : Date) : void{
         this.birthday=birthday;
     }
 
