@@ -1,8 +1,3 @@
-let message : string = "Hello World";
-console.log(message);
-
-//NotTested
-
 class Actor {
     //class Actor which represent someone
     private Id : number ;
@@ -10,16 +5,14 @@ class Actor {
     private  name : string;
     private birthday : Date;
 
-    constructor( n : string, birthday : Date ) {
-        this.name = n;
+    constructor( name : string, birthday : Date ) {
+        this.name = name;
         this.birthday = birthday;
         this.Id = Actor.getIdGen();
        }
 
-    
-    public setName( n : string) {
-        this.name = n;
-    }
+    //getters 
+
     public getName(){
         return this.name;
     }
@@ -30,16 +23,23 @@ class Actor {
         return Id;
     }
 
-    public setBirthday( birthday : Date) {
-        this.birthday=birthday;
-    }
-    public getBirthday() {
+    public getBirthday(){
         return this.birthday;
     }
 
-    public getId() {
+    public getId(){
         return this.Id ;
     }
+
+    // setters
+    public setName( n : string){
+        this.name = n;
+    }
+
+    public setBirthday( birthday : Date){
+        this.birthday=birthday;
+    }
+
 
 
 }
