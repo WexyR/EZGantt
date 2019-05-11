@@ -61,3 +61,5 @@ class Ressource{
         return available;
     }
 }
+
+//export{Ressource};
