@@ -32,6 +32,9 @@ class Ressource{
     public getCost() : number {
         return this.cost;
     }
+    public getId() : number {
+        return this.Id;
+    }
 
     //setters
 
@@ -52,7 +55,7 @@ class Ressource{
     public consume(n : number = 1){
         if(n<=0){throw new Error("Consume can't be 0 or negative");}
         this.amount -= n;
-        if(this.amount < 0){this.amount = 0} //Is not an Error for me
+        if(this.amount < 0){this.amount = 0;} //Is not an Error for me
     }
 
     public is_available(n : number = 1) : boolean {
@@ -61,5 +64,3 @@ class Ressource{
         return available;
     }
 }
-
-//export{Ressource};
