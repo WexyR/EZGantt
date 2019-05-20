@@ -6,7 +6,7 @@ class Duration {
   private seconds: number;
   private millis: number;
 
-  constructor(weeks: number=0, days: number=0, hours: number=0, minutes: number=0, seconds: number=0, millis: number=0){
+  constructor(millis: number=0, seconds: number=0, minutes: number=0, hours: number=0, days: number=0, weeks: number=0){
       this.weeks = weeks;
       this.days = days;
       this.hours = hours;
@@ -115,6 +115,10 @@ class Duration {
     this.seconds -= d.getSeconds();
     this.millis -= d.getMillis();
     this.update_param();
+  }
+
+  public is_negative():boolean{
+    return this.valueOf()<0;
   }
 
   public valueOf():number{
