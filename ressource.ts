@@ -5,7 +5,7 @@ class Ressource{
     private name : string;
     private amount : number;
     private cost : number;
-    
+    private assignments : Array<Assignment> = [];
     constructor(name : string, cost : number, amount : number = 1){
         if(amount < 0 || cost < 0) {throw new Error("Can't be negative");}
         this.name = name;
@@ -35,7 +35,9 @@ class Ressource{
     public getId() : number {
         return this.Id;
     }
-
+    public getAssignments(): Array<Assignment>{
+        return this.assignments;
+    }
     //setters
 
     public setName(name : string) : void{
@@ -48,6 +50,32 @@ class Ressource{
 
     public setCost(cost : number) : void{
         this.cost = cost;
+    }
+
+    public addAssignment(a :Assignment, n : number) : number {
+        let included : boolean = false
+        for(let i of this.assignments){
+            if( i === a) { included = true;}
+        }
+        if (!included) {this.assignments.push(a);}
+        if (this.amount < n) {
+            alert("Nombre insuffisant de cette ressource, le maximum a été alouer");
+            n = this.amount;
+        }
+        this.amount -= n;
+        return n;
+    }
+
+    public removeAssignment( a : Assignment, n : number) : void{
+        let k = 0;
+        for(let i = 0; i<this.assignments.length;i++) {
+            if(a === this.assignments[i]){
+                break;
+            }
+            k+=1;
+        }
+        this.assignments.splice(k,1)
+        this.amount+=n;
     }
     
     //function
