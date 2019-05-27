@@ -2,14 +2,16 @@
 
 class Task {
   private name: string;
-  private start: Date;
-  private end: Date;
+  private start: Duration; // relative to parent
+  private end: Duration;  //
   private timespan: Duration;
   private weight: number;
   private predecessors: Task[]=[];
   private successors: Task[]=[];
   private subTasks: Task[]=[];
   private parent: Task;
+  private absoluteRef: Date;
+  private absolute: boolean;
 
   private timeConstraint: TimeConstraint;
   private state: State;
@@ -17,48 +19,40 @@ class Task {
   private saveLastValueOfStart: number;
   private saveLastValueOfEnd: number;
 
-  constructor(name: string, weight: number, start?: Date, end?: Date, timespan?: Duration, predecessors: Task[]=[], successors: Task[]=[], subTasks: Task[]=[], parent?:Task){
+  constructor(parent?:Task, absoluteRef?:Date, name:string="Task", weight:number=1){
     this.state = State.Not_Scheduled;
-    if (start === undefined && end === undefined && timespan === undefined){
-      this.state = State.Alongside;
-    }else{
-      this.state = State.Scheduled;
-      if (start === undefined){
-        this.end = end;
-        this.timespan = timespan;
-        this.start = new Date(end.valueOf() - timespan.valueOf());
-      }else if (end === undefined){
-        this.start = start;
-        this.timespan = timespan;
-        this.end = new Date(start.valueOf() + timespan.valueOf());
-      }else{ //Default: recalculation de timespan
-        this.start = start;
-        this.end = end;
-        this.timespan = new Duration(end.valueOf()-start.valueOf());
-      }
+    if (this.setRef(parent, absoluteRef) === -1){
+      throw Error("Can not be relative to a parent Task and absolute at the same time.");
     }
-
-    this.name = name;
     this.weight = weight;
-    for (let pred of predecessors){
-      this.addPredecessor(pred);
-    }
-    for (let st of subTasks){
-      this.addPredecessor(st);
-    }
-    this.parent=parent;
+    this.name = name;
   }
 
   //getters
   public getName():string{
     return this.name;
   }
-  public getStart():Date{
+  public getStart():Duration{
     return this.start;
   }
-  public getEnd():Date{
+  public getStartDate():Date{
+    if (!this.absolute){
+      return new Date(this.start.valueOf() + this.parent.getStartDate().valueOf()); // adds up until absolute date to refer to
+    }else{
+      return new Date(this.start.valueOf() + this.absoluteRef.valueOf());
+    }
+  }
+  public getEnd():Duration{
     return this.end;
   }
+  public getEndDate():Date{
+    if (!this.absolute){
+      return new Date(this.end.valueOf() + this.parent.getStartDate().valueOf()); // adds up until absolute date to refer to
+    }else{
+      return new Date(this.end.valueOf() + this.absoluteRef.valueOf());
+    }
+  }
+
   public getTimespan():Duration{
     return this.timespan;
   }
@@ -75,37 +69,76 @@ class Task {
     return this.timeConstraint;
   }
 
+
+
   //setters & adders
+
+  public setRef(parent?:Task, absoluteRef?:Date):number{
+    if ((!parent && absoluteRef) || (parent && !absoluteRef)){ //xor
+      if (parent){
+        this.parent = parent;
+        parent.addSuccessor(this);
+        this.absolute = false;
+      }else{
+        this.absoluteRef = absoluteRef;
+        this.absolute = true;
+      }
+      return 0;
+    }else{
+      return -1;
+    }
+}
   public setName(name: string){
     this.name = name;
   }
-  public setStart(start: Date):number{
+  public setStart(start: Duration):number{
+    if(start.is_negative()){
+      return -1;
+    }
+    //first, fix the value if undefined
+    if(this.start === undefined){
+      this.start = start;
+      if(this.end || this.timespan){
+        if(this.end){
+          this.timespan = new Duration(this.end.valueOf() - this.start.valueOf());
+        }else{
+          this.end = new Duration(this.start.valueOf() + this.timespan.valueOf());
+        }
+        this.state = State.Scheduled;
+      }else{
+        return 0;
+      }
+    }
+
     //If the start is not constrained
     if(this.timeConstraint !== TimeConstraint.All && this.timeConstraint !== TimeConstraint.Start){
+
       //delta calculation
       let d:Duration = new Duration(start.valueOf()-this.start.valueOf());
 
       if (d.is_negative()){
         //We try to move each predecessor
         for (let pred of this.predecessors){
-          let newEnd = new Date(pred.end.valueOf()+d.valueOf());
+          console.log(pred);
+          let newEnd:Duration = new Duration(pred.end.valueOf()+d.valueOf());
           //And if it's not possible, we break on -1
-          if (pred.setEnd(newEnd) === -1){
+          if(newEnd.is_negative()){
+            if (pred.setEnd(newEnd) === -1){
+              return -1;
+            }
+          }
+        }
+      }else{
+        if(!this.absolute){
+          if(start.valueOf() >= this.parent.timespan.valueOf()){
             return -1;
           }
         }
       }
 
-      //We also try to move each subTask
-      for (let st of this.subTasks){
-        let newStart:Date = new Date(st.start.valueOf()+d.valueOf());
-        if (st.setStart(newStart) === -1){
-          return -1;
-        }
-      }
       //if the timespan is a constant, the end is moved
       if(this.timeConstraint === TimeConstraint.Timespan){
-        let newEnd:Date = new Date(this.end.valueOf()+d.valueOf());
+        let newEnd:Duration = new Duration(this.end.valueOf()+d.valueOf());
         if (d.is_negative()){
           this.end = newEnd; //no collisions with successors
         }else{
@@ -127,33 +160,67 @@ class Task {
     }
     return 0;
   }
-  public setEnd(end: Date):number{
+
+  public setStartDate(start:Date):number{
+    if(this.absolute){
+      let d = new Duration(start.valueOf()-this.absoluteRef.valueOf());
+      if (d.is_negative()){
+        return -1;
+      }else{
+        return this.setStart(d);
+      }
+    }
+  }
+
+
+  public setEnd(end: Duration):number{
+    if(end.is_negative()){
+      return -1;
+    }
+
+
+    //first, fix the value if undefined
+    if(this.end === undefined){
+      this.end = end;
+      if(this.start || this.timespan){
+        if(this.start){
+          this.timespan = new Duration(this.end.valueOf() - this.start.valueOf());
+        }else{
+          this.start = new Duration(this.end.valueOf() - this.timespan.valueOf());
+        }
+        this.state = State.Scheduled;
+      }else{
+        return 0;
+      }
+    }
+
     if(this.timeConstraint !== TimeConstraint.All && this.timeConstraint !== TimeConstraint.End){
+
       //delta calculation
       let d:Duration = new Duration(end.valueOf()-this.end.valueOf());
 
-      console.log(d);
       if (!d.is_negative()){
         //We try to move each sucessor
         for (let succ of this.successors){
-          let newStart = new Date(succ.start.valueOf()+d.valueOf());
+          let newStart:Duration = new Duration(succ.start.valueOf()+d.valueOf());
           //And if it's not possible, we break on -1
-          if (succ.setStart(newStart) === -1){
+          if(!newStart.is_negative()){
+            if (succ.setStart(newStart) === -1){
+              return -1;
+            }
+          }
+        }
+      }else{
+        if(!this.absolute){
+          if(end.valueOf() >= this.parent.timespan.valueOf()){
             return -1;
           }
         }
       }
 
-      //We also try to move each subTask
-      for (let st of this.subTasks){
-        let newStart:Date = new Date(st.start.valueOf()+d.valueOf());
-        if (st.setStart(newStart) === -1){
-          return -1;
-        }
-      }
       //if the timespan is a constant, the start is moved
       if(this.timeConstraint === TimeConstraint.Timespan){
-        let newStart:Date = new Date(this.start.valueOf()+d.valueOf());
+        let newStart:Duration = new Duration(this.start.valueOf()+d.valueOf());
         if (!d.is_negative()){
           this.start = newStart; //no collisions with successors
         }else{
@@ -175,16 +242,44 @@ class Task {
     }
     return 0;
   }
+
+  public setEndDate(end:Date):number{
+    if(this.absolute){
+      let d = new Duration(end.valueOf()-this.absoluteRef.valueOf());
+      if (d.is_negative()){
+        return -1;
+      }else{
+        return this.setEnd(d);
+      }
+    }
+  }
+
   public setTimespan(timespan: Duration):number{
+    //first, fix the value if undefined
+    if(this.timespan === undefined){
+      this.timespan = timespan;
+      if(this.start || this.end){
+        if(this.start){
+          this.end = new Duration(this.start.valueOf() + this.timespan.valueOf());
+        }else{
+          this.start = new Duration(this.end.valueOf() - this.timespan.valueOf());
+        }
+        this.state = State.Scheduled;
+      }else{
+        return 0;
+      }
+    }
+
     if(this.timeConstraint !== TimeConstraint.All && this.timeConstraint !== TimeConstraint.Timespan && !timespan.is_negative()){
+
       let d: Duration = new Duration(this.timespan.valueOf() - timespan.valueOf());
       if(this.timeConstraint === TimeConstraint.End){
-        let newStart:Date = new Date(this.start.valueOf() - d.valueOf());
+        let newStart:Duration = new Duration(this.start.valueOf() - d.valueOf());
         if (this.setStart(newStart) === -1){
           return -1;
         };
       }else{ //By default, moves the end
-        let newEnd:Date = new Date(this.end.valueOf() - d.valueOf());
+        let newEnd:Duration = new Duration(this.end.valueOf() - d.valueOf());
         if (this.setEnd(newEnd) === -1){
           return -1;
         };
@@ -195,7 +290,48 @@ class Task {
     return 0;
   }
 
+  public setTime(start?:Duration, end?:Duration, timespan?:Duration):number{
+    let args:number = 0;
+    if(start && end && timespan){
+      return -1;
+    }
+    if(start){
+      return this.setStart(start);
+    }
+    if(end){
+      return this.setEnd(end);
+    }
+    if(timespan){
+      return this.setTimespan(timespan);
+    }
+  }
 
+  public setTimeDate(start?:Date, end?:Date, timespan?:Duration):number{
+    if(start && end && timespan){
+      return -1;
+    }
+    let still_ok = true;
+    if(start){
+      if(this.setStartDate(start) !== 0){
+        still_ok = false;
+      }
+    }
+    if(end && still_ok){
+      if( this.setEndDate(end) !== 0){
+        still_ok = false;
+      }
+    }
+    if(timespan && still_ok){
+      if(this.setTimespan(timespan)){
+        still_ok = false;
+      }
+    }
+    if (!still_ok){
+      return -1;
+    }else{
+      return 0;
+    }
+  }
 
   public setWeight(weight: number){
     this.weight = weight;
@@ -243,19 +379,10 @@ class Task {
     }
     if(!included){
       this.subTasks.push(st);
-      st.addParent(this);
+      st.setRef(this, undefined);
     }
   }
   public removeSubTask(p:Task){
-    //TODO
-  }
-
-  //parent
-  public addParent(p:Task){
-    this.parent = p;
-    p.addSubTask(this);
-  }
-  public removeParent(p:Task){
     //TODO
   }
 
@@ -274,49 +401,50 @@ class Task {
     this.predecessors.forEach( pred => {
       pred.saveTime();
     })
-    this.subTasks.forEach( st => {
+    /*this.subTasks.forEach( st => {
       st.saveTime();
-    })
+    })*/
+    if(!this.absolute){
+      this.parent.saveTime();
+    }
   }
   public restoreTime(){
-    this.start = new Date(this.saveLastValueOfStart);
-    this.end = new Date(this.saveLastValueOfEnd);
+    this.start = new Duration(this.saveLastValueOfStart);
+    this.end = new Duration(this.saveLastValueOfEnd);
     console.log(this.saveLastValueOfEnd);
     this.predecessors.forEach( pred => {
       pred.restoreTime();
     })
-    this.subTasks.forEach( st => {
+    /*this.subTasks.forEach( st => {
       st.restoreTime();
-    })
+    })*/
+    if(!this.absolute){
+      this.parent.restoreTime();
+    }
   }
 
 
   public skip(){
     this.state = State.Skipped;
   }
+  public is_active():boolean{
+    return (this.state === State.Active || this.state === State.In_Progress || this.state === State.Alongside || this.state === State.Urgent);
+  }
 
 }
+var begin:Date = new Date("2019-05-06");
+var t0:Task = new Task(undefined,begin, "t0");
+// tache debutant le 7 et durant une semaine
+t0.setTimeDate(new Date("2019-05-07"), undefined, new Duration(0, 0, 0, 0, 0, 1))
+t0.setTimeConstraint(TimeConstraint.Start)
 
-//function test() {
-var t0:Task = new Task("t0", 1, new Date("2019-05-6"), new Date("2019-05-13"));
-t0.setTimeConstraint(TimeConstraint.End);
-var t1:Task = new Task("t1", 1, new Date("2019-05-13"), new Date("2019-05-20"), undefined, [t0], undefined);
-t1.setTimeConstraint(TimeConstraint.Start);
-var t2:Task = new Task("t2", 1, new Date("2019-05-20"), new Date("2019-05-27"), undefined, [t1], undefined);
-t2.setTimeConstraint(TimeConstraint.Timespan);
-var t3:Task = new Task("t3", 1, new Date("2019-05-20"), new Date("2019-05-27"), undefined, undefined, [t2]);
-t2.setTimeConstraint(TimeConstraint.Timespan);
+var t1:Task = new Task(undefined,begin, "t1");
+// tache debutant le 14 et durant une semaine
+t1.setTimeDate(new Date("2019-05-14"), undefined, new Duration(0, 0, 0, 0, 0, 1))
+//avec t0 comme predecessor
+t1.addPredecessor(t0);
+t1.setTimeConstraint(TimeConstraint.Timespan);
 
-t2.saveTime();
-let ok = t2.setEnd(new Date("2019-05-28"));
-console.log(ok)
-if (ok==-1){
-  console.log("Nope!!!")
-  t2.restoreTime();
-}
-console.log(t0);
-console.log(t1);
-console.log(t2);
-
-/*};
-test();*/
+//sous tache de 3jours au debut de t1
+var st1_1 = new Task(t1, undefined, "st1_1");
+st1_1.setTime(new Duration(0), undefined, new Duration(0, 0, 0, 0, 3, 0));
