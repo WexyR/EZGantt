@@ -1,3 +1,4 @@
+<!DOCTYPE HTML>
 <html>
 	<head>
 		<title>EZGantt</title>
@@ -5,7 +6,37 @@
 	</head>
 
 	<body>
-		<script src="app.js"></script>
+	<script src="duration.js"></script>
+	<script src="state.js"></script>
+	<script src="timeConstraint.js"></script>
+		<!--script src="task.js"></script-->
+		<script language="javascript">
+		class Vehicle {
+			constructor( un, deux, trois) {
+				this.un = un;
+				this.deux = deux;
+				this.trois = trois;
+			}
+		}
+			periode = new Vehicle(1, 2, 3);
+			value = JSON.stringify(periode);
+			console.log(value);
+			localStorage.setItem("Test", value);
+			v2 = localStorage.getItem("Test");
+			console.log(JSON.parse(v2).trois);
+			console.log(localStorage);
+			for (i=0; i<2500; i++) {
+				localStorage.setItem("Test"+i, i);
+			}
+			console.log(localStorage);
+			for (i=0; i<localStorage.length; i++) {
+				if (localStorage.key(i) == "Test138") {
+					console.log("Bingo!")
+					}
+			}
+
+		</script>
+
 	</body>
 
 </html>
