@@ -1,7 +1,7 @@
 class Assignment {
-    private estimatedTime : Duration = new Duration(0); //waiting for last version of Duration
+    private estimatedTime : Duration = new Duration(0);
     private timeCost : number = 0;
-    private time : Duration = new Duration(0); //waiting for last version of Duration
+    private time : Duration = new Duration(0);
     private actor : Actor;
     private ressources : Array<[Ressource | UnexpendableRessource ,number]> = [];
     private task : Task;
@@ -100,6 +100,19 @@ class Assignment {
 
     public work(hours : Duration) : void { //As hours was declared Date , I use the Duration type
         this.time.add(hours);
+    }
+
+    public removeAssignment(ressource : UnexpendableRessource) {
+        for(let onAssignment in this.ressources){
+            if(this.ressources[onAssignment][0] === ressource){
+                if(this.ressources[onAssignment][1] >1){
+                    this.ressources[onAssignment][1]-=1;
+                }
+                else{
+                    this.ressources.splice(+onAssignment ,1);
+                }
+            }
+        }
     }
 }
 

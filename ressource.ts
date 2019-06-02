@@ -59,7 +59,7 @@ class Ressource{
         }
         if (!included) {this.assignments.push(a);}
         if (this.amount < n) {
-            alert("Nombre insuffisant de cette ressource, le maximum a été alouer");
+            alert("Not enough if this ressource, max is allocated");
             n = this.amount;
         }
         this.amount -= n;
@@ -81,7 +81,10 @@ class Ressource{
     //function
 
     public consume(n : number = 1){
-        if(n<=0){throw new Error("Consume can't be 0 or negative");}
+        if(n<0){
+            alert("Consume can't be negative");
+            n = this.amount;
+        }
         this.amount -= n;
         if(this.amount < 0){this.amount = 0;} //Is not an Error for me
     }

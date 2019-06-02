@@ -1,9 +1,8 @@
 class UnexpendableRessource {
     private ressource : Ressource;
     private usedPeriods : Array<Array<[Date, Date]>> = [] ; //which and when
-    //assignment by ressource ?
     constructor(name : string, cost : number, amount : number = 1){
-        this.ressource = new Ressource(name,cost,amount) //heritage fait avec une composition / Inheritance with composition
+        this.ressource = new Ressource(name,cost,amount) // Inheritance with composition
         for(let i : number = 0; i<this.getAmount();i++) {this.usedPeriods.push([]);} //Timetable of an object
     }
 
@@ -40,16 +39,51 @@ class UnexpendableRessource {
 
     public consume(Id? : number) : void{ //Id == index of the material object
         if( Id === undefined){
-            if (confirm("Voulez-vous consommer entièrement toutes ces ressources ?")) {  //temporary
-                this.usedPeriods = [];
+            if (confirm("Do You want to consume this ressource entirely ?")) {
                 this.ressource.setAmount(0);
+                for(let assign of this.getAssignments()) {
+                    assign.removeRessource(this);
+                }
+                this.usedPeriods = [];
             }
             else {return;}
         }
         else{
+            let periods : Array<[Date,Date]> = []
+            let assigns : Array<Assignment> = []
+            for(let period of this.usedPeriods[Id]){
+                //if there is a futur assignment ?
+                if(period[0].getTime()>=Date.now()){
+                    periods.push(period);
+                    for(let assign of this.getAssignments()){
+                        if(period[0]===assign.getTask().getStart() && period[1]===assign.getTask().getEnd()){ //find the assignment with period
+                            assigns.push(assign);
+                            continue; //only one assignment per period
+                        }
+                    }
+                }
+            }
+            //destroy the ressource
             this.usedPeriods.splice(Id,1);
             this.ressource.setAmount(this.getAmount()-1);
-            // if there is an futur assignment re-assign it or raise problem
+            let testIsAvailable : Boolean = true;
+            let problemIndex = [];
+            for(let a in assigns){        
+                if(this.is_available(1,[this.getAssignments()[a].getTask().getStart(),this.getAssignments()[a].getTask().getEnd()]) === false){
+                    testIsAvailable = false;
+                    problemIndex.push(a);
+                }
+            }
+            if(testIsAvailable === false){alert("Not enough amount of this ressource to support the consume ");}
+            for(let a in assigns){ //an offset of the iterator in assigns     
+                if(this.is_available(1,[this.getAssignments()[a].getTask().getStart(),this.getAssignments()[a].getTask().getEnd()]) === true){
+                    this.use(periods[a]);
+                }
+            for(let index in problemIndex){
+                this.getAssignments()[index].removeAssignment(this);
+            }
+            }
+
         }
     }
 
@@ -60,7 +94,7 @@ class UnexpendableRessource {
     public addAssignment(a :Assignment, n : number) : number {
         let count = this.nAvailable(n,[a.getTask().getStart(),a.getTask().getEnd()]);
         this.ressource.addAssignment(a,0);
-        if(count< n) {alert("Nombre insuffisant de cette ressource, le maximum a été alouer");}
+        if(count< n) {alert("Not enough if this ressource, max is allocated");}
         for(let k = 0; k<count;k++) {this.use([a.getTask().getStart(),a.getTask().getEnd()]);}
         return count;
     }
@@ -69,6 +103,7 @@ class UnexpendableRessource {
         this.ressource.removeAssignment(a,0);
         this.removeUsedPeriod([a.getTask().getStart(),a.getTask().getEnd()],n);
     }    
+
 
     //indirect setter
 
@@ -96,7 +131,7 @@ class UnexpendableRessource {
         if(available.length > 0) {this.usedPeriods[available[0]].push(period);}
     }
 
-    public is_available( n : number = 1, usePeriod? : [Date,Date] )  {
+    public is_available( n : number = 1, usePeriod? : [Date,Date] ) : Boolean  {
         let amount : number = 0; //the amount of period available
         if(usePeriod === undefined) { amount = this.getAmount();}
         else{        
