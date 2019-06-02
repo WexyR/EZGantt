@@ -1,27 +1,47 @@
 class Canvas {
+    // Le contexte HTML. C'est la base du canvas, on en tire ses propriétés
     private context: CanvasRenderingContext2D;
 
+    // Le panel sur lequel on dessine. Il est tiré du contexte et est parfois rafraichi
     private canvas: HTMLCanvasElement;
+
+    // L'id html de l'élément canvas auquel s'attacher
     private canvasId: string;
+
+    // Permet de slide le panel (=rajouter un offset au rendu)
     private renderOffsetX: number = 0;
     private renderOffsetY: number = 0;
 
+    // Le contenu du canvas. Component est une interface.
     private components: Component[];
+
+    // Non implémenté, la longueur du projet
     private projectLength: number = 3;
+
+    // Cache pour les déplacements, sert de lien entre les events onMouseUp, onMouseMove et onMouseDown
     private haveDraggedComponent: boolean = false;
     private isDragged: boolean = false;
 
+    // Constantes pour le rendu
     private static readonly DAY_WIDTH = 40;
     private static readonly FONT_SIZE = 24;
     private static readonly LINE_HEIGHT = 28;
     private static readonly DAY_OF_THE_WEEK = ["L", "M", "M", "J", "V", "S", "D"]
 
+    /**
+     * Constructeur du gestionnaire de rendu d'un canvas d'id donné. Si à l'instant de la création aucun
+     * canvas avec cet id n'existe, il est toujours possible d'update cette référence avec updateContext()
+     * @param canvasId L'id HTML de l'élément canvas auquel se rattacher.
+     */
     constructor(canvasId: string) {
         this.components = [];
         this.canvasId = canvasId;
         this.updateContext();
     }
 
+    /**
+     * Un bout de code utilitaire, en C++ je l'aurais mis inline
+     */
     getOffset() {
         const rect = this.canvas.getBoundingClientRect();
         return {
@@ -30,10 +50,18 @@ class Canvas {
         };
     }
 
+    /**
+     * Ajout d'un composant / d'une tache
+     * @param c Le composant à rajouter dans le canvas
+     */
     registerComponent(c: Component) {
         this.components.push(c);
     }
 
+    /**
+     * Update du contexte. En gros si vous bidouillez le html du canvas, vous pouvez
+     * update la reference au canvas et en refaire la config
+     */
     updateContext() {
         this.canvas = <HTMLCanvasElement>document.getElementById(this.canvasId);
         if (!this.canvas) return;
@@ -53,7 +81,8 @@ class Canvas {
 
             // test each components to see if mouse is inside
             for (let c of this.components) {
-                if (this.mouseX > c.x && this.mouseX < c.x + c.width && this.mouseY > c.y && this.mouseY < c.y + c.height) {
+                if (this.mouseX > c.x && this.mouseX < c.x + c.width
+                    && this.mouseY > c.y && this.mouseY < c.y + c.height) {
                     c.isBeingDragged = true;
                     this.haveDraggedComponent = true;
                     return;
@@ -111,6 +140,9 @@ class Canvas {
         this.render()
     }
 
+    /**
+     * La fonction de rendu. Est appelée par les différents events qu'on gère
+     */
     render(): boolean {
         if (!this.canvas) return false;
         this.context.clearRect(0, 0, document.documentElement.clientWidth, document.documentElement.clientHeight);
@@ -155,8 +187,13 @@ class Canvas {
     private mouseY: number;
 }
 
+// On crée notre instance ici. Je vais probablement la déplacer dans app.js plus tard 
 var graph = new Canvas('graph');
 
+/**
+ * Charge dans une variable canvas donnée le gantt par défaut
+ * @param canvas Le canvas à intialiser
+ */
 function openTestGraph(canvas : Canvas): void {
     canvas.clear();
     canvas.registerComponent(new Task("Création des graphes UML", 75, 150, 100, 200, 80, 'Silver'));
