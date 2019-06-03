@@ -11,6 +11,7 @@ class Canvas {
     // Permet de slide le panel (=rajouter un offset au rendu)
     private renderOffsetX: number = 0;
     private renderOffsetY: number = 0;
+    private nextLineId: number = 0;
 
     // Le contenu du canvas. Component est une interface.
     private components: Component[];
@@ -23,7 +24,8 @@ class Canvas {
     private isDragged: boolean = false;
 
     // Constantes pour le rendu
-    private static readonly DAY_WIDTH = 40;
+    public static readonly DAY_WIDTH = 40;
+    private static readonly TASK_HEIGHT = 80;
     private static readonly FONT_SIZE = 24;
     private static readonly LINE_HEIGHT = 28;
     private static readonly DAY_OF_THE_WEEK = ["L", "M", "M", "J", "V", "S", "D"]
@@ -56,6 +58,8 @@ class Canvas {
      */
     registerComponent(c: Component) {
         this.components.push(c);
+        c.y = this.nextLineId * Canvas.TASK_HEIGHT+Canvas.LINE_HEIGHT*3;
+        this.nextLineId++;
     }
 
     /**
@@ -194,9 +198,28 @@ var graph = new Canvas('graph');
  * Charge dans une variable canvas donnée le gantt par défaut
  * @param canvas Le canvas à intialiser
  */
-function openTestGraph(canvas : Canvas): void {
+function openTestGraph(canvas: Canvas): void {
     canvas.clear();
-    canvas.registerComponent(new Task("Création des graphes UML", 75, 150, 100, 200, 80, 'Silver'));
-    canvas.registerComponent(new Task("Implémentation", 15, 360, 190, 200, 80, 'Silver'));
-    console.log(JSON.stringify(graph));
+    var begin: Date = new Date("2019-05-06");
+    var t0: Task = new Task(undefined, begin, "t0");
+    // tache debutant le 7 et durant une semaine
+    t0.setTimeDate(new Date("2019-05-07"), undefined, new Duration(0, 0, 0, 0, 0, 1))
+    t0.setTimeConstraint(TimeConstraint.Start)
+
+    var t1: Task = new Task(undefined, begin, "t1");
+    // tache debutant le 14 et durant une semaine
+    t1.setTimeDate(new Date("2019-05-14"), undefined, new Duration(0, 0, 0, 0, 0, 1))
+    //avec t0 comme predecessor
+    t1.addPredecessor(t0);
+    t1.setTimeConstraint(TimeConstraint.Timespan);
+
+    //sous tache de 3jours au debut de t1
+    //var st1_1 = new Task(t1, undefined, "st1_1");
+
+    canvas.registerComponent(t0);
+    canvas.registerComponent(t1);
+
+    /*canvas.registerComponent(new Task("Création des graphes UML", 75, 150, 100, 200, 80, 'Silver'));
+    canvas.registerComponent(new Task("Implémentation", 15, 360, 190, 200, 80, 'Silver'));*/
+    //console.log(JSON.stringify(graph));
 }
