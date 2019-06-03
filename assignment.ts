@@ -79,7 +79,7 @@ class Assignment {
                         } 
                         if(ressource instanceof Ressource){ressource.setAmount(ressource.getAmount()+n);}
                         else{
-                            ressource.removeUsedPeriod([this.task.getStart(),this.task.getEnd()],n);
+                            ressource.removeUsedPeriod([this.task.getStartDate(),this.task.getEndDate()],n);
                         }
                         this.ressources[i][1]-=n;
 

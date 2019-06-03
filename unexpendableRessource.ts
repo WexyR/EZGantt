@@ -56,7 +56,7 @@ class UnexpendableRessource {
                 if(period[0].getTime()>=Date.now()){
                     periods.push(period);
                     for(let assign of this.getAssignments()){
-                        if(period[0]===assign.getTask().getStart() && period[1]===assign.getTask().getEnd()){ //find the assignment with period
+                        if(period[0]===assign.getTask().getStartDate() && period[1]===assign.getTask().getEndDate()){ //find the assignment with period
                             assigns.push(assign);
                             continue; //only one assignment per period
                         }
@@ -69,14 +69,14 @@ class UnexpendableRessource {
             let testIsAvailable : Boolean = true;
             let problemIndex = [];
             for(let a in assigns){        
-                if(this.is_available(1,[this.getAssignments()[a].getTask().getStart(),this.getAssignments()[a].getTask().getEnd()]) === false){
+                if(this.is_available(1,[this.getAssignments()[a].getTask().getStartDate(),this.getAssignments()[a].getTask().getEndDate()]) === false){
                     testIsAvailable = false;
                     problemIndex.push(a);
                 }
             }
             if(testIsAvailable === false){alert("Not enough amount of this ressource to support the consume ");}
             for(let a in assigns){ //an offset of the iterator in assigns     
-                if(this.is_available(1,[this.getAssignments()[a].getTask().getStart(),this.getAssignments()[a].getTask().getEnd()]) === true){
+                if(this.is_available(1,[this.getAssignments()[a].getTask().getStartDate(),this.getAssignments()[a].getTask().getEndDate()]) === true){
                     this.use(periods[a]);
                 }
             for(let index in problemIndex){
@@ -92,16 +92,16 @@ class UnexpendableRessource {
     }
 
     public addAssignment(a :Assignment, n : number) : number {
-        let count = this.nAvailable(n,[a.getTask().getStart(),a.getTask().getEnd()]);
+        let count = this.nAvailable(n,[a.getTask().getStartDate(),a.getTask().getEndDate()]);
         this.ressource.addAssignment(a,0);
         if(count< n) {alert("Not enough if this ressource, max is allocated");}
-        for(let k = 0; k<count;k++) {this.use([a.getTask().getStart(),a.getTask().getEnd()]);}
+        for(let k = 0; k<count;k++) {this.use([a.getTask().getStartDate(),a.getTask().getEndDate()]);}
         return count;
     }
 
     public removeAssignment( a : Assignment,n : number) : void{
         this.ressource.removeAssignment(a,0);
-        this.removeUsedPeriod([a.getTask().getStart(),a.getTask().getEnd()],n);
+        this.removeUsedPeriod([a.getTask().getStartDate(),a.getTask().getEndDate()],n);
     }    
 
 

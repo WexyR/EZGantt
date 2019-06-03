@@ -6,8 +6,8 @@ class Task {
         this.start = start;
         this.end = end;
     }
-    public getStart() : Date{return this.start;}
-    public getEnd() : Date{return this.end;}
+    public getStartDate() : Date{return this.start;}
+    public getEndDate() : Date{return this.end;}
     public getAssignments(): Array<Assignment>{
         return this.assignments;
     }
