@@ -58,7 +58,7 @@ class Canvas {
      */
     registerComponent(c: Component) {
         this.components.push(c);
-        c.y = this.nextLineId * Canvas.TASK_HEIGHT+Canvas.LINE_HEIGHT*3;
+        c.y = this.nextLineId * Canvas.TASK_HEIGHT + Canvas.LINE_HEIGHT * 3;
         this.nextLineId++;
     }
 
@@ -103,7 +103,10 @@ class Canvas {
             // clear all the dragging flags
             this.haveDraggedComponent = false;
             for (let c of this.components) {
-                c.isBeingDragged = false;
+                if (c.isBeingDragged) {
+                    c.isBeingDragged = false;
+                    c.onDragFinished();
+                }
             }
             this.isDragged = false;
         };
