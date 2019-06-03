@@ -58,7 +58,7 @@ class Canvas {
      */
     registerComponent(c: Component) {
         this.components.push(c);
-        c.y = this.nextLineId * Canvas.TASK_HEIGHT + Canvas.LINE_HEIGHT * 3;
+        c.setY(this.nextLineId * Canvas.TASK_HEIGHT + Canvas.LINE_HEIGHT * 3);
         this.nextLineId++;
     }
 
@@ -85,8 +85,8 @@ class Canvas {
 
             // test each components to see if mouse is inside
             for (let c of this.components) {
-                if (this.mouseX > c.x && this.mouseX < c.x + c.width
-                    && this.mouseY > c.y && this.mouseY < c.y + c.height) {
+                if (this.mouseX > c.getX() && this.mouseX < c.getX() + c.getWidth()
+                    && this.mouseY > c.getY() && this.mouseY < c.getY() + c.getHeight()) {
                     c.isBeingDragged = true;
                     this.haveDraggedComponent = true;
                     return;
@@ -109,6 +109,7 @@ class Canvas {
                 }
             }
             this.isDragged = false;
+            this.render();
         };
         this.canvas.onmousemove = (e: MouseEvent) => {
             // if we're dragging anything...
