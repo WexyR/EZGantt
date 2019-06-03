@@ -96,6 +96,27 @@ class Task extends Component {
     }
   }
 
+  public getX(): number {
+    return this.getStart().valueOf() * Canvas.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
+  }
+  public setX(x: number) {
+    // Not implemented
+  }
+
+  public getY(): number {
+    return this.y;
+  }
+  public setY(y: number) {
+    this.y = y;
+  }
+
+  public getWidth(): number {
+    return this.getTimespan().valueOf() * Canvas.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
+  }
+  public getHeight(): number {
+    return this.height;
+  }
+
   public getTimespan(): Duration {
     return this.timespan;
   }
@@ -110,12 +131,6 @@ class Task extends Component {
   }
   public getTimeConstraint(): TimeConstraint {
     return this.timeConstraint;
-  }
-  public getX(): number {
-    return this.getStart().valueOf() * Canvas.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
-  }
-  public getWidth(): number {
-    return this.getTimespan().valueOf() * Canvas.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
   }
   public getAssignments(): Array<Assignment> {
     return this.assignments;
