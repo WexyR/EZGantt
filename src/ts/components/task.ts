@@ -1,6 +1,6 @@
 //import {State} from "./state"
 
-class Task implements Component {
+class Task extends Component {
 
   public width: number = 50;
   public x: number = 0;
@@ -23,6 +23,7 @@ class Task implements Component {
   private parent: Task;
   private absoluteRef: Date;
   private absolute: boolean;
+  private assignments: Array<Assignment> = [];
 
   private timeConstraint: TimeConstraint;
   private state: State;
@@ -33,6 +34,7 @@ class Task implements Component {
   public static readonly DAY_LENGTH_MILLIS = 86400000;
 
   constructor(parent?: Task, absoluteRef?: Date, name: string = "Task", weight: number = 1) {
+    super();
     this.state = State.Not_Scheduled;
     if (this.setRef(parent, absoluteRef) === -1) {
       throw Error("Can not be relative to a parent Task and absolute at the same time.");
@@ -41,26 +43,32 @@ class Task implements Component {
     this.name = name;
   }
 
+  private dx = 0;
   onDrag(dx: number, dy: number): void {
-    console.log(this.setStart(new Duration(this.getStart().valueOf() + dx / Canvas.DAY_WIDTH * Task.DAY_LENGTH_MILLIS)));
+    this.dx += dx;
   }
+
+  onDragFinished(): void {
+    console.log(this.setStart(new Duration(this.getStart().valueOf() + this.dx / Canvas.DAY_WIDTH * Task.DAY_LENGTH_MILLIS)));
+    this.dx = 0;
+  };
 
   render(context: CanvasRenderingContext2D): void {
     // Background
     context.fillStyle = this.bgColor;
-    context.fillRect(this.getX(), this.y, this.getWidth(), this.height);
+    context.fillRect(this.getX() + this.dx, this.y, this.getWidth(), this.height);
     // Title
     context.fillStyle = "Black"
     context.font = this.fontSize + 'px mono';
-    context.fillText(this.name, this.getX() + this.getWidth() / 2 - this.name.length * 4, this.y + this.fontSize);
+    context.fillText(this.name, this.getX() + this.dx + this.getWidth() / 2 - this.name.length * 4, this.y + this.fontSize);
     // Progress
-    context.fillText(this.clearingScore + "%", this.getX() + this.getWidth() / 2 - 12, this.y + 2 * this.height / 3 - this.fontSize / 2, 3 * (this.fontSize / 2));
+    context.fillText(this.clearingScore + "%", this.getX() + this.dx + this.getWidth() / 2 - 12, this.y + 2 * this.height / 3 - this.fontSize / 2, 3 * (this.fontSize / 2));
     context.fillStyle = 'Green';
-    context.fillRect(this.getX(), this.y + 2 * this.height / 3, this.getWidth() / 100 * this.clearingScore, this.height / 6);
+    context.fillRect(this.getX() + this.dx, this.y + 2 * this.height / 3, this.getWidth() / 100 * this.clearingScore, this.height / 6);
     // Stroke
     context.strokeStyle = 'Black'
-    context.strokeRect(this.getX(), this.y, this.getWidth(), this.height);
-    context.strokeRect(this.getX(), this.y + 2 * this.height / 3, this.getWidth(), this.height / 6);
+    context.strokeRect(this.getX() + this.dx, this.y, this.getWidth(), this.height);
+    context.strokeRect(this.getX() + this.dx, this.y + 2 * this.height / 3, this.getWidth(), this.height / 6);
   }
 
   //getters
@@ -109,8 +117,26 @@ class Task implements Component {
   public getWidth(): number {
     return this.getTimespan().valueOf() * Canvas.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
   }
+  public getAssignments(): Array<Assignment> {
+    return this.assignments;
+  }
 
-  //setters & adders
+  // setters & adders
+
+  public addAssignment(a: Assignment): void {
+    this.assignments.push(a);
+  }
+
+  public removeAssignment(a: Assignment): void {
+    let k = 0;
+    for (let i = 0; i < this.assignments.length; i++) {
+      if (a === this.assignments[i]) {
+        break;
+      }
+      k += 1;
+    }
+    this.assignments.splice(k, 1);
+  }
 
   public setRef(parent?: Task, absoluteRef?: Date): number {
     if ((!parent && absoluteRef) || (parent && !absoluteRef)) { //xor
