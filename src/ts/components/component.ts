@@ -4,7 +4,7 @@ abstract class Component {
     onDrag(dx: number, dy: number): void { };
     onDragFinished(): void { };
 
-    abstract render(context: CanvasRenderingContext2D): void;
+    abstract render(context: CanvasRenderingContext2D, offsetX: number, offsetY: number): void;
 
     abstract getWidth(): number;
     abstract getHeight(): number;
