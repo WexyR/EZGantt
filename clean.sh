@@ -1,1 +1,1 @@
-rm src/ts/*/*.js
+rm src/ts/*/*.js src/ts/*.js
