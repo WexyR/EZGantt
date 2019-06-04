@@ -16,8 +16,9 @@ class Canvas {
     // Le contenu du canvas. Component est une interface.
     private components: Component[];
 
-    // Non implémenté, la longueur du projet
+    // Non implémenté, la longueur du projet en semaine
     private projectLength: number = 3;
+    private projectStart: Date;
 
     // Cache pour les déplacements, sert de lien entre les events onMouseUp, onMouseMove et onMouseDown
     private haveDraggedComponent: boolean = false;
@@ -25,10 +26,10 @@ class Canvas {
 
     // Constantes pour le rendu
     public static readonly DAY_WIDTH = 40;
-    private static readonly TASK_HEIGHT = 80;
-    private static readonly FONT_SIZE = 24;
-    private static readonly LINE_HEIGHT = 28;
-    private static readonly DAY_OF_THE_WEEK = ["L", "M", "M", "J", "V", "S", "D"]
+    public static readonly TASK_HEIGHT = 80;
+    public static readonly FONT_SIZE = 24;
+    public static readonly LINE_HEIGHT = 28;
+    public static readonly DAY_OF_THE_WEEK = ["L", "M", "M", "J", "V", "S", "D"]
 
     /**
      * Constructeur du gestionnaire de rendu d'un canvas d'id donné. Si à l'instant de la création aucun
@@ -85,15 +86,14 @@ class Canvas {
 
             // test each components to see if mouse is inside
             for (let c of this.components) {
-                if (this.mouseX > c.getX() && this.mouseX < c.getX() + c.getWidth()
-                    && this.mouseY > c.getY() && this.mouseY < c.getY() + c.getHeight()) {
+                if (this.mouseX > c.getX() + this.renderOffsetX && this.mouseX < c.getX() + c.getWidth() + this.renderOffsetX
+                    && this.mouseY > c.getY() + this.renderOffsetY && this.mouseY < c.getY() + c.getHeight() + this.renderOffsetY) {
                     c.isBeingDragged = true;
                     this.haveDraggedComponent = true;
                     return;
                 }
             }
             this.isDragged = true;
-
         };
         this.canvas.onmouseup = (e: MouseEvent) => {
             // tell the browser we're handling this mouse event
@@ -130,9 +130,6 @@ class Canvas {
 
                 if (this.isDragged) {
                     this.renderOffsetX += dx;
-                    for (let c of this.components) {
-                        c.onDrag(dx, dy);
-                    }
                 } else {
                     for (let c of this.components) {
                         if (c.isBeingDragged) {
@@ -159,7 +156,34 @@ class Canvas {
         this.context.fillStyle = "DimGray";
         this.context.font = Canvas.FONT_SIZE + 'px mono';
 
-        // Background grid
+        // Clearing head
+        this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+
+        // Semaines
+        let week = ~~(-this.renderOffsetX / (7 * Canvas.DAY_WIDTH)) - 1;
+        for (let x = this.renderOffsetX % (7 * Canvas.DAY_WIDTH) - (7 * Canvas.DAY_WIDTH); x < this.canvas.width; x += 7 * Canvas.DAY_WIDTH) {
+            if (week < 0) {
+                this.context.fillStyle = "LightGray";
+                this.context.fillRect(x, 0, Canvas.DAY_WIDTH * 7, this.context.canvas.height);
+                this.context.fillStyle = "DimGray";
+            } else {
+                this.context.fillText("Semaine " + week, x + 7 * Canvas.DAY_WIDTH / 2 - 2 * Canvas.FONT_SIZE, Canvas.FONT_SIZE);
+            }
+            week += 1;
+        }
+
+        // Drawing lines
+        this.context.strokeStyle = "DimGray";
+        this.context.beginPath();
+        this.context.moveTo(0, Canvas.LINE_HEIGHT);
+        this.context.lineTo(this.canvas.width, Canvas.LINE_HEIGHT);
+        this.context.stroke();
+        this.context.beginPath();
+        this.context.moveTo(0, 2 * Canvas.LINE_HEIGHT);
+        this.context.lineTo(this.canvas.width, 2 * Canvas.LINE_HEIGHT);
+        this.context.stroke();
+
+        // Jours
         let day = ~~Math.abs(Math.abs(this.renderOffsetX) / Canvas.DAY_WIDTH);
         if (this.renderOffsetX > 0) {
             day = Math.abs(day - 7 * ~~(Math.abs(this.renderOffsetX) / Canvas.DAY_WIDTH)) % 7;
@@ -171,24 +195,21 @@ class Canvas {
             this.context.moveTo(x, (day == 0 ? 0 : Canvas.LINE_HEIGHT));
             this.context.lineTo(x, this.canvas.height);
             this.context.stroke();
-            this.context.fillText(Canvas.DAY_OF_THE_WEEK[day], x + Canvas.DAY_WIDTH / 2 - Canvas.FONT_SIZE / 4, Canvas.LINE_HEIGHT * 3 / 2 + Canvas.FONT_SIZE / 2);
+            this.context.fillText(Canvas.DAY_OF_THE_WEEK[day], x + Canvas.DAY_WIDTH / 2 - Canvas.FONT_SIZE / 4, Canvas.LINE_HEIGHT + Canvas.FONT_SIZE);
             day = (day + 1) % 7;
         }
-        this.context.strokeStyle = "DimGray";
-        this.context.beginPath();
-        this.context.moveTo(0, Canvas.LINE_HEIGHT);
-        this.context.lineTo(this.canvas.width, Canvas.LINE_HEIGHT);
-        this.context.stroke();
 
         // Component rendering
         for (let c of this.components) {
-            c.render(this.context);
+            c.render(this.context, this.renderOffsetX, this.renderOffsetY);
         }
+
         return true;
     }
 
     clear(): void {
         this.components = [];
+        this.nextLineId = 0;
     }
 
     private mouseX: number;
@@ -222,8 +243,4 @@ function openTestGraph(canvas: Canvas): void {
 
     canvas.registerComponent(t0);
     canvas.registerComponent(t1);
-
-    /*canvas.registerComponent(new Task("Création des graphes UML", 75, 150, 100, 200, 80, 'Silver'));
-    canvas.registerComponent(new Task("Implémentation", 15, 360, 190, 200, 80, 'Silver'));*/
-    //console.log(JSON.stringify(graph));
 }

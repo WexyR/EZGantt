@@ -2,27 +2,31 @@
 
 class Task extends Component {
 
-  public width: number = 50;
-  public x: number = 0;
-  public y: number = 0;
+  private width: number = 50;
+  private height: number = 80;
+  private x: number = 0;
+  private y: number = 0;
 
   public bgColor: string = "Silver";
   public fontSize: number = 16;
   public isBeingDragged: boolean = false;
-  public height: number = 80;
 
   private name: string;
   private clearingScore: number = 0;
+  private weight: number;
+
   private start: Duration; // relative to parent
   private end: Duration;  //
   private timespan: Duration;
-  private weight: number;
+
   private predecessors: Task[] = [];
   private successors: Task[] = [];
   private subTasks: Task[] = [];
+
   private parent: Task;
   private absoluteRef: Date;
   private absolute: boolean;
+
   private assignments: Array<Assignment> = [];
 
   private timeConstraint: TimeConstraint;
@@ -44,34 +48,58 @@ class Task extends Component {
   }
 
   private dx = 0;
+  private dLength = 0;
   onDrag(dx: number, dy: number): void {
-    this.dx += dx;
+    if (this.timeConstraint == TimeConstraint.All) return;
+    if (!(this.timeConstraint == TimeConstraint.Timespan)) {
+      this.dLength += dx;
+    } else {
+      this.dx += dx;
+    }
   }
 
   onDragFinished(): void {
-    console.log(this.setStart(new Duration(this.getStart().valueOf() + this.dx / Canvas.DAY_WIDTH * Task.DAY_LENGTH_MILLIS)));
+    if (this.timeConstraint == TimeConstraint.All) return;
+    if (this.timeConstraint == TimeConstraint.Timespan || this.timeConstraint == TimeConstraint.None) {
+      this.setStart(new Duration(this.getStart().valueOf() + this.dx / Canvas.DAY_WIDTH * Task.DAY_LENGTH_MILLIS));
+    } else {
+      console.log(this.timeConstraint);
+      console.log(this.setTimespan(new Duration(this.getTimespan().valueOf() + this.dx / Canvas.DAY_WIDTH * Task.DAY_LENGTH_MILLIS)));
+    }
     this.dx = 0;
+    this.dLength = 0;
   };
 
-  render(context: CanvasRenderingContext2D): void {
+  render(context: CanvasRenderingContext2D, offsetX: number, offsetY: number): void {
     // Background
     context.fillStyle = this.bgColor;
-    context.fillRect(this.getX() + this.dx, this.y, this.getWidth(), this.height);
+    let x = this.getX() + this.dx + offsetX;
+    let y = this.getY() + offsetY;
+    context.fillRect(x, y, (this.getWidth() + this.dLength), this.height);
     // Title
     context.fillStyle = "Black"
     context.font = this.fontSize + 'px mono';
-    context.fillText(this.name, this.getX() + this.dx + this.getWidth() / 2 - this.name.length * 4, this.y + this.fontSize);
+    context.fillText(this.name, x + (this.getWidth() + this.dLength) / 2 - this.name.length * 4, y + this.fontSize);
     // Progress
-    context.fillText(this.clearingScore + "%", this.getX() + this.dx + this.getWidth() / 2 - 12, this.y + 2 * this.height / 3 - this.fontSize / 2, 3 * (this.fontSize / 2));
+    context.fillText(this.clearingScore + "%", x + (this.getWidth() + this.dLength) / 2 - 12, y + 2 * this.height / 3 - this.fontSize / 2, 3 * (this.fontSize / 2));
     context.fillStyle = 'Green';
-    context.fillRect(this.getX() + this.dx, this.y + 2 * this.height / 3, this.getWidth() / 100 * this.clearingScore, this.height / 6);
+    context.fillRect(x, y + 2 * this.height / 3, (this.getWidth() + this.dLength) / 100 * this.clearingScore, this.height / 6);
     // Stroke
     context.strokeStyle = 'Black'
-    context.strokeRect(this.getX() + this.dx, this.y, this.getWidth(), this.height);
-    context.strokeRect(this.getX() + this.dx, this.y + 2 * this.height / 3, this.getWidth(), this.height / 6);
+    context.strokeRect(x, y, (this.getWidth() + this.dLength), this.height);
+    context.strokeRect(x, y + 2 * this.height / 3, (this.getWidth() + this.dLength), this.height / 6);
+    // Line
+    context.strokeStyle = "LightGray";
+    context.beginPath();
+    context.moveTo(0, y + this.getHeight());
+    context.lineTo(context.canvas.width, y + this.getHeight());
+    context.stroke();
+    context.beginPath();
+    context.moveTo(0, y);
+    context.lineTo(context.canvas.width, y);
+    context.stroke();
   }
 
-  //getters
   public getName(): string {
     return this.name;
   }
