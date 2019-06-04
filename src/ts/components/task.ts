@@ -1,5 +1,3 @@
-//import {State} from "./state"
-
 class Task extends Component {
 
   public width: number = 50;
@@ -11,31 +9,32 @@ class Task extends Component {
   public isBeingDragged: boolean = false;
   public height: number = 80;
 
-  private name: string;
+  private name: string; // name of the task
   private clearingScore: number = 0;
-  private start: Duration; // relative to parent
+  private start: Duration; // relative to parent or absoluteRef
   private end: Duration;  //
   private timespan: Duration;
   private weight: number;
-  private predecessors: Task[] = [];
-  private successors: Task[] = [];
-  private subTasks: Task[] = [];
-  private parent: Task;
-  private absoluteRef: Date;
-  private absolute: boolean;
+  private predecessors: Task[] = []; // tasks completed needed
+  private successors: Task[] = []; // tasks which need this completed
+  private subTasks: Task[] = []; // tasks inside this
+  private parent: Task; // task reference
+  private absoluteRef: Date; // date reference
+  private absolute: boolean; // true if referenced to a date, false else
   private assignments: Array<Assignment> = [];
 
   private timeConstraint: TimeConstraint;
   private state: State;
 
-  private saveLastValueOfStart: number;
-  private saveLastValueOfEnd: number;
+  private saveLastValueOfStart: number; // local save of start and end value
+  private saveLastValueOfEnd: number; // useful for restore last time state
+                                      // when time setting errors occur
 
-  public static readonly DAY_LENGTH_MILLIS = 86400000;
+  public static readonly DAY_LENGTH_MILLIS = 86400000; // milliseconds in a day
 
   constructor(parent?: Task, absoluteRef?: Date, name: string = "Task", weight: number = 1) {
     super();
-    this.state = State.Not_Scheduled;
+    this.state = State.Not_Scheduled; // a Task is first not scheduled
     if (this.setRef(parent, absoluteRef) === -1) {
       throw Error("Can not be relative to a parent Task and absolute at the same time.");
     }
@@ -89,7 +88,7 @@ class Task extends Component {
     return this.end;
   }
   public getEndDate(): Date {
-    if (!this.absolute) {
+    if (!this.absolute) { //if relative to a task, trying recursively to get an absolute reference (date)
       return new Date(this.end.valueOf() + this.parent.getStartDate().valueOf()); // adds up until absolute date to refer to
     } else {
       return new Date(this.end.valueOf() + this.absoluteRef.valueOf());
@@ -111,14 +110,17 @@ class Task extends Component {
   public getTimeConstraint(): TimeConstraint {
     return this.timeConstraint;
   }
-  public getX(): number {
+  public getX(): number { // converting the start into pixels
     return this.getStart().valueOf() * Canvas.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
   }
-  public getWidth(): number {
+  public getWidth(): number { // converting the timespan into pixels
     return this.getTimespan().valueOf() * Canvas.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
   }
   public getAssignments(): Array<Assignment> {
     return this.assignments;
+  }
+  public getClearingScore(): number {
+    return this.clearingScore;
   }
 
   // setters & adders
@@ -140,21 +142,33 @@ class Task extends Component {
 
   public setRef(parent?: Task, absoluteRef?: Date): number {
     if ((!parent && absoluteRef) || (parent && !absoluteRef)) { //xor
-      if (parent) {
+      if (parent) { // set a task reference as a parent
         this.parent = parent;
-        parent.addSuccessor(this);
+        parent.addSubTask(this);
         this.absolute = false;
-      } else {
+      } else { // set a date reference
         this.absoluteRef = absoluteRef;
         this.absolute = true;
       }
       return 0;
     } else {
-      return -1;
+      return -1; // can't be both relative and absolute
     }
   }
   public setName(name: string) {
     this.name = name;
+  }
+  public setClearingScore(cs:number) {
+    this.clearingScore = cs;
+  }
+  public addSubClearingScore(cs:number){
+    if(this.clearingScore + cs > 100){
+      this.clearingScore = 100;
+    }else if(this.clearingScore + cs < 0){
+      this.clearingScore = 0;
+    }else{
+      this.clearingScore = this.clearingScore + cs;
+    }
   }
 
   public setStart(start: Duration): number {
@@ -166,10 +180,13 @@ class Task extends Component {
       this.start = start;
       if (this.end || this.timespan) {
         if (this.end) {
+          //if end is undefined, timespan can be calculated
           this.timespan = new Duration(this.end.valueOf() - this.start.valueOf());
         } else {
+          //vice versa
           this.end = new Duration(this.start.valueOf() + this.timespan.valueOf());
         }
+        //now the task is scheduled
         this.state = State.Scheduled;
       } else {
         return 0;
@@ -195,8 +212,9 @@ class Task extends Component {
           }
         }
       } else {
-        if (!this.absolute) {
+        if (!this.absolute) { // if relative
           if (start.valueOf() >= this.parent.timespan.valueOf()) {
+            //can't start before its parent
             return -1;
           }
         }
@@ -229,6 +247,7 @@ class Task extends Component {
 
   public setStartDate(start: Date): number {
     if (this.absolute) {
+      //calculate the duration relative to its parent from the date given
       let d = new Duration(start.valueOf() - this.absoluteRef.valueOf());
       if (d.is_negative()) {
         return -1;
@@ -240,10 +259,11 @@ class Task extends Component {
 
 
   public setEnd(end: Duration): number {
-    if (end.is_negative()) {
+    if (end.is_negative()) { //can't end before start
       return -1;
     }
 
+    //For more explanations, check out setStart (similar function)
 
     //first, fix the value if undefined
     if (this.end === undefined) {
@@ -310,6 +330,7 @@ class Task extends Component {
   }
 
   public setEndDate(end: Date): number {
+    // For more explanations, check out setStartDate (similar function)
     if (this.absolute) {
       let d = new Duration(end.valueOf() - this.absoluteRef.valueOf());
       if (d.is_negative()) {
@@ -323,6 +344,7 @@ class Task extends Component {
   public setTimespan(timespan: Duration): number {
     //first, fix the value if undefined
     if (this.timespan === undefined) {
+      // For more explanations, check out setStart (similar function)
       this.timespan = timespan;
       if (this.start || this.end) {
         if (this.start) {
@@ -340,6 +362,7 @@ class Task extends Component {
 
       let d: Duration = new Duration(this.timespan.valueOf() - timespan.valueOf());
       if (this.timeConstraint === TimeConstraint.End) {
+        // if the end is fixed and we change the timespan, the start has to be recalculated
         let newStart: Duration = new Duration(this.start.valueOf() - d.valueOf());
         if (this.setStart(newStart) === -1) {
           return -1;
@@ -357,22 +380,36 @@ class Task extends Component {
   }
 
   public setTime(start?: Duration, end?: Duration, timespan?: Duration): number {
-    let args: number = 0;
     if (start && end && timespan) {
-      return -1;
+      return -1; //can't for all three arguments together
     }
+    //set one by one up to 2 arguments
+    // if a setting can't be done, automatically breaks on -1
+    let still_ok = true;
     if (start) {
-      return this.setStart(start);
+      if (this.setStart(start) !== 0) {
+        still_ok = false;
+      }
     }
-    if (end) {
-      return this.setEnd(end);
+    if (end && still_ok) {
+      if (this.setEnd(end) !== 0) {
+        still_ok = false;
+      }
     }
-    if (timespan) {
-      return this.setTimespan(timespan);
+    if (timespan && still_ok) {
+      if (this.setTimespan(timespan)) {
+        still_ok = false;
+      }
+    }
+    if (!still_ok) {
+      return -1;
+    } else {
+      return 0;
     }
   }
 
   public setTimeDate(start?: Date, end?: Date, timespan?: Duration): number {
+    // For more explanations, check out setTime (similar function)
     if (start && end && timespan) {
       return -1;
     }
@@ -416,7 +453,13 @@ class Task extends Component {
     }
   }
   public removePredecessor(p: Task) {
-    //TODO
+    let index:number = this.predecessors.indexOf(p, 0);
+    if (index !== -1) { // if found
+       let pred:Task = this.predecessors.splice(index, 1)[0]; //remove the predecessor and return it
+       pred.removeSuccessor(this) //if pred isn't a predecessor anymore, this is not a successor thereby
+    }else{
+      return; // avoid infinity callback
+    }
   }
   //successors
   public addSuccessor(s: Task) {
@@ -432,13 +475,19 @@ class Task extends Component {
     }
   }
   public removeSuccessor(p: Task) {
-    //TODO
+    let index:number = this.successors.indexOf(p, 0);
+    if (index !== -1) { // if found
+       let pred:Task = this.successors.splice(index, 1)[0]; //remove the successor and return it
+       pred.removePredecessor(this) //if pred isn't a successor anymore, this is not a predecessor thereby
+    }else{
+      return; // avoid infinity callback
+    }
   }
 
   //subTasks
   public addSubTask(st: Task) {
     let included: boolean = false;
-    for (let subt of this.predecessors) {
+    for (let subt of this.subTasks) {
       if (subt === st) {
         included = true;
       }
@@ -448,8 +497,15 @@ class Task extends Component {
       st.setRef(this, undefined);
     }
   }
-  public removeSubTask(p: Task) {
-    //TODO
+  public removeSubTask(p: Task):number {
+    let index:number = this.subTasks.indexOf(p, 0);
+    if (index !== -1) { // if found
+       this.subTasks.splice(index, 1)[0].removeAll();
+       //remove the subTasks and delete all references
+       return 0;
+    }else{
+      return -1; // failed
+    }
   }
 
 
@@ -461,6 +517,9 @@ class Task extends Component {
 
   //methods
   public saveTime() {
+    //save recursively all task which can be modified by changing time settings
+    //if the time changement aborts, it's possible to restore the former state
+    //with restoreTime to undo all modifications
     this.saveLastValueOfStart = this.start.valueOf();
     this.saveLastValueOfEnd = this.end.valueOf();
     console.log(this.saveLastValueOfEnd);
@@ -475,6 +534,7 @@ class Task extends Component {
     }
   }
   public restoreTime() {
+    //restore recursively all task which can be modified by changing time settings
     this.start = new Duration(this.saveLastValueOfStart);
     this.end = new Duration(this.saveLastValueOfEnd);
     console.log(this.saveLastValueOfEnd);
@@ -489,6 +549,21 @@ class Task extends Component {
     }
   }
 
+  public removeAll(){
+    //remove all predecessors, all successors, all subTasks
+    for (let st of this.subTasks) {
+      this.removeSubTask(st); //remove dependencies
+    }
+    for (let pred of this.predecessors) {
+      this.removePredecessor(pred); //remove dependencies
+    }
+    for (let succ of this.successors) {
+      this.removeSuccessor(succ); //remove dependencies
+    }
+    this.parent = undefined;
+    this.absoluteRef = undefined;
+    this.absolute = undefined;
+  }
 
   public skip() {
     this.state = State.Skipped;
@@ -498,7 +573,7 @@ class Task extends Component {
   }
 
 }
-/*
+
 var begin: Date = new Date("2019-05-06");
 var t0: Task = new Task(undefined, begin, "t0");
 // tache debutant le 7 et durant une semaine
@@ -515,4 +590,3 @@ t1.setTimeConstraint(TimeConstraint.Timespan);
 //sous tache de 3jours au debut de t1
 var st1_1 = new Task(t1, undefined, "st1_1");
 st1_1.setTime(new Duration(0), undefined, new Duration(0, 0, 0, 0, 3, 0));
-*/
