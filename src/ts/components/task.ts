@@ -268,11 +268,13 @@ class Task extends Component {
       if (!d.is_negative()) {
         //We try to move each sucessor
         for (let succ of this.successors) {
-          let newStart: Duration = new Duration(succ.start.valueOf() + d.valueOf());
-          //And if it's not possible, we break on -1
-          if (!newStart.is_negative()) {
-            if (succ.setStart(newStart) === -1) {
-              return -1;
+          if(end.valueOf()>succ.start.valueOf()){
+            let newStart: Duration = new Duration(succ.start.valueOf() + d.valueOf());
+            //And if it's not possible, we break on -1
+            if (!newStart.is_negative()) {
+              if (succ.setStart(newStart) === -1) {
+                return -1;
+              }
             }
           }
         }
@@ -338,14 +340,14 @@ class Task extends Component {
 
     if (this.timeConstraint !== TimeConstraint.All && this.timeConstraint !== TimeConstraint.Timespan && !timespan.is_negative()) {
 
-      let d: Duration = new Duration(this.timespan.valueOf() - timespan.valueOf());
+      let d: Duration = new Duration(timespan.valueOf()-this.timespan.valueOf());
       if (this.timeConstraint === TimeConstraint.End) {
-        let newStart: Duration = new Duration(this.start.valueOf() - d.valueOf());
+        let newStart: Duration = new Duration(this.start.valueOf() + d.valueOf());
         if (this.setStart(newStart) === -1) {
           return -1;
         };
       } else { //By default, moves the end
-        let newEnd: Duration = new Duration(this.end.valueOf() - d.valueOf());
+        let newEnd: Duration = new Duration(this.end.valueOf() + d.valueOf());
         if (this.setEnd(newEnd) === -1) {
           return -1;
         };
