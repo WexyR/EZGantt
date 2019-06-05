@@ -6,7 +6,7 @@ while true; do
         if [ $yn = "N" ] || [ $yn = "n" ]; then break; fi
     fi
     echo "Compilation en cours..."
-    tsc *.ts */*.ts
+    tsc *.ts */*.ts --lib es2015,dom
     echo "Compilation terminée!"
     echo ""
 done
