@@ -57,6 +57,11 @@
 	<script type="text/javascript" src="src/ts/task.js" ></script>
 	<script type="text/javascript" src="src/ts/bdd/bundle.js" ></script>
 
+	<script type="text/javascript" src="src/ts/utils/actor.js"></script>
+	<script type="text/javascript" src="src/ts/utils/ressource.js"></script>
+	<script type="text/javascript" src="src/ts/utils/unexpendableRessource.js"></script>
+	<script type="text/javascript" src="src/ts/utils/assignment.js"></script>
+	
 	<script type="text/javascript" src="src/ts/canvas.js"></script>
 
 	<script type="text/javascript" src="app.js"></script>
@@ -65,12 +70,13 @@
 <body>
 	<div id="wrapper">
 		<ul id="menuContainer">
-				<li><a href="index.html">Standard Layout</a></li>
-				<li><a href="index.html?layout=responsive">Responsive Layout</a></li>
-				<li><a href="index.html?layout=tab-dropdown">Tab Dropdown Layout</a></li>
-				<li><a id="dl" onclick='document.getElementById("dl").href="data:text/plain;charset=UTF-8,"+JSON.stringify(graph)'
+			<li><a href="index.html">Standard Layout</a></li>
+			<li><a href="index.html?layout=responsive">Responsive Layout</a></li>
+			<li><a href="index.html?layout=tab-dropdown">Tab Dropdown Layout</a></li>
+			<li><a id="dl"
+					onclick='document.getElementById("dl").href="data:text/plain;charset=UTF-8,"+JSON.stringify(graph)'
 					href="" download="save.json">Serializer</a></li>
-				<button onclick="openTestGraph(graph); graph.updateContext()">Ouvrir le projet par défaut</button>
+			<button onclick="openTestGraph(graph); graph.updateContext()">Ouvrir le projet par défaut</button>
 		</ul>
 		<div id="layoutContainer"></div>
 	</div>
