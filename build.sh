@@ -7,6 +7,10 @@ while true; do
     fi
     echo "Compilation en cours..."
     tsc *.ts */*.ts --lib es2015,dom
+    cd bdd
+    browserify bdd.js -o bundle.js
+    cd -
     echo "Compilation terminée!"
     echo ""
 done
+cd -
