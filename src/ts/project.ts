@@ -26,7 +26,7 @@ class Project {
      */
     registerTask(c: Task) {
         this.components.push(c);
-        c.setY(this.nextLineId * Renderer.TASK_HEIGHT + Renderer.LINE_HEIGHT * 3);
+        c.setY(this.nextLineId * GUI.TASK_HEIGHT + GUI.LINE_HEIGHT * 3);
         this.nextLineId++;
     }
 

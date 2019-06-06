@@ -1,4 +1,4 @@
-class Renderer {
+class GUI {
     // Le contexte HTML. C'est la base du canvas, on en tire ses propriétés
     private context: CanvasRenderingContext2D;
 
@@ -9,7 +9,7 @@ class Renderer {
     private canvasId: string;
 
     // Permet de slide le panel (=rajouter un offset au rendu)
-    private renderOffsetX: number = 0;
+    private renderOffsetX: number = 50;
     private renderOffsetY: number = 0;
 
     /*// Le contenu du canvas. Component est une interface.
@@ -23,6 +23,7 @@ class Renderer {
     // Cache pour les déplacements, sert de lien entre les events onMouseUp, onMouseMove et onMouseDown
     private haveDraggedComponent: boolean = false;
     private isDragged: boolean = false;
+    public static currentlySelectedComponent: Component = null;
 
     // Dernière position connue de la souris. Sert aux calculs de déplacement 'drag'
     private mouseX: number;
@@ -53,7 +54,7 @@ class Renderer {
         + '</p>'
         + '<p>'
         + '<label for="task-modification-predecessor">Prédecesseur</label> :'
-        + '<input type="text" name="task-modification-predecessor" id="task-modification-predecessor" required>'
+        + '<input type="text" name="task-modification-predecessor" id="task-modification-predecessor" required readonly>'
         + '</p>';
 
     //"Vous avez sélectionné ouno tash. Cherr élèèèèèève";
@@ -122,12 +123,21 @@ class Renderer {
                     && this.mouseY > c.getY() + this.renderOffsetY && this.mouseY < c.getY() + c.getHeight() + this.renderOffsetY) {
                     c.isBeingDragged = true;
                     this.haveDraggedComponent = true;
-                    document.getElementById("modification-menu").innerHTML = Renderer.MODIFICATION_ENABLED;
-                    document.getElementById("modification-menu").innerHTML += '<button onclick="">Appliquer la modification</button>';
+                    document.getElementById("modification-menu").innerHTML = GUI.MODIFICATION_ENABLED;
+                    (<HTMLInputElement>document.getElementById("task-modification-name")).defaultValue = c.getName();
+                    (<HTMLInputElement>document.getElementById("task-modification-weight")).defaultValue = String(c.getWeight());
+                    (<HTMLInputElement>document.getElementById("task-modification-progress")).defaultValue = String(c.getClearingScore());
+                    GUI.currentlySelectedComponent=c;
+                    document.getElementById("modification-menu").innerHTML += "<button onclick='"
+                    + "GUI.currentlySelectedComponent.setName(document.getElementById(\"task-modification-name\").value);"
+                    + "GUI.currentlySelectedComponent.setWeight(document.getElementById(\"task-modification-weight\").value);"
+                    + "GUI.currentlySelectedComponent.setClearingScore(document.getElementById(\"task-modification-progress\").value);"
+                    + "renderer.updateContext();''"
+                        + ">Appliquer la modification</button>";
                     return;
                 }
             }
-            document.getElementById("modification-menu").innerHTML = Renderer.MODIFICATION_DISABLED;
+            document.getElementById("modification-menu").innerHTML = GUI.MODIFICATION_DISABLED;
             this.isDragged = true;
         };
 
@@ -202,20 +212,20 @@ class Renderer {
 
         // Loading fonts
         this.context.fillStyle = "DimGray";
-        this.context.font = Renderer.FONT_SIZE + 'px mono';
+        this.context.font = GUI.FONT_SIZE + 'px mono';
 
         // Clearing head
         this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 
         // Semaines
-        let week = ~~(-this.renderOffsetX / (7 * Renderer.DAY_WIDTH)) - 1;
-        for (let x = this.renderOffsetX % (7 * Renderer.DAY_WIDTH) - (7 * Renderer.DAY_WIDTH); x < this.canvas.width; x += 7 * Renderer.DAY_WIDTH) {
+        let week = ~~(-this.renderOffsetX / (7 * GUI.DAY_WIDTH)) - 1;
+        for (let x = this.renderOffsetX % (7 * GUI.DAY_WIDTH) - (7 * GUI.DAY_WIDTH); x < this.canvas.width; x += 7 * GUI.DAY_WIDTH) {
             if (week < 0) {
                 this.context.fillStyle = "LightGray";
-                this.context.fillRect(x, 0, Renderer.DAY_WIDTH * 7, this.context.canvas.height);
+                this.context.fillRect(x, 0, GUI.DAY_WIDTH * 7, this.context.canvas.height);
                 this.context.fillStyle = "DimGray";
             } else {
-                this.context.fillText("Semaine " + week, x + 7 * Renderer.DAY_WIDTH / 2 - 2 * Renderer.FONT_SIZE, Renderer.FONT_SIZE);
+                this.context.fillText("Semaine " + week, x + 7 * GUI.DAY_WIDTH / 2 - 2 * GUI.FONT_SIZE, GUI.FONT_SIZE);
             }
             week += 1;
         }
@@ -223,27 +233,27 @@ class Renderer {
         // Drawing lines
         this.context.strokeStyle = "DimGray";
         this.context.beginPath();
-        this.context.moveTo(0, Renderer.LINE_HEIGHT);
-        this.context.lineTo(this.canvas.width, Renderer.LINE_HEIGHT);
+        this.context.moveTo(0, GUI.LINE_HEIGHT);
+        this.context.lineTo(this.canvas.width, GUI.LINE_HEIGHT);
         this.context.stroke();
         this.context.beginPath();
-        this.context.moveTo(0, 2 * Renderer.LINE_HEIGHT);
-        this.context.lineTo(this.canvas.width, 2 * Renderer.LINE_HEIGHT);
+        this.context.moveTo(0, 2 * GUI.LINE_HEIGHT);
+        this.context.lineTo(this.canvas.width, 2 * GUI.LINE_HEIGHT);
         this.context.stroke();
 
         // Jours
-        let day = ~~Math.abs(Math.abs(this.renderOffsetX) / Renderer.DAY_WIDTH);
+        let day = ~~Math.abs(Math.abs(this.renderOffsetX) / GUI.DAY_WIDTH);
         if (this.renderOffsetX > 0) {
-            day = Math.abs(day - 7 * ~~(Math.abs(this.renderOffsetX) / Renderer.DAY_WIDTH)) % 7;
+            day = Math.abs(day - 7 * ~~(Math.abs(this.renderOffsetX) / GUI.DAY_WIDTH)) % 7;
         }
         day %= 7;
-        for (let x = this.renderOffsetX % Renderer.DAY_WIDTH; x < this.canvas.width; x += Renderer.DAY_WIDTH) {
+        for (let x = this.renderOffsetX % GUI.DAY_WIDTH; x < this.canvas.width; x += GUI.DAY_WIDTH) {
             this.context.strokeStyle = (day == 0 ? "DimGray" : "LightGray");
             this.context.beginPath();
-            this.context.moveTo(x, (day == 0 ? 0 : Renderer.LINE_HEIGHT));
+            this.context.moveTo(x, (day == 0 ? 0 : GUI.LINE_HEIGHT));
             this.context.lineTo(x, this.canvas.height);
             this.context.stroke();
-            this.context.fillText(Renderer.DAY_OF_THE_WEEK[day], x + Renderer.DAY_WIDTH / 2 - Renderer.FONT_SIZE / 4, Renderer.LINE_HEIGHT + Renderer.FONT_SIZE);
+            this.context.fillText(GUI.DAY_OF_THE_WEEK[day], x + GUI.DAY_WIDTH / 2 - GUI.FONT_SIZE / 4, GUI.LINE_HEIGHT + GUI.FONT_SIZE);
             day = (day + 1) % 7;
         }
 

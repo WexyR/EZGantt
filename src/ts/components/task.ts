@@ -58,13 +58,13 @@ class Task extends Component {
   }
 
   onDragFinished(): void {
-    if(this.dx) this.dx=~~((this.dx/Renderer.DAY_WIDTH)+0.5*this.dx/Math.abs(this.dx))*Renderer.DAY_WIDTH;
-    if(this.dLength) this.dLength=~~((this.dLength/Renderer.DAY_WIDTH)+0.5*this.dLength/Math.abs(this.dLength))*Renderer.DAY_WIDTH;
+    if(this.dx) this.dx=~~((this.dx/GUI.DAY_WIDTH)+0.5*this.dx/Math.abs(this.dx))*GUI.DAY_WIDTH;
+    if(this.dLength) this.dLength=~~((this.dLength/GUI.DAY_WIDTH)+0.5*this.dLength/Math.abs(this.dLength))*GUI.DAY_WIDTH;
     if (this.timeConstraint == TimeConstraint.All) return;
     if (this.timeConstraint == TimeConstraint.Timespan) {
-      this.setStart(new Duration(this.getStart().valueOf() + this.dx / Renderer.DAY_WIDTH * Task.DAY_LENGTH_MILLIS));
+      this.setStart(new Duration(this.getStart().valueOf() + this.dx / GUI.DAY_WIDTH * Task.DAY_LENGTH_MILLIS));
     } else {
-      this.setTimespan(new Duration(this.getTimespan().valueOf() + this.dLength / Renderer.DAY_WIDTH * Task.DAY_LENGTH_MILLIS));
+      this.setTimespan(new Duration(this.getTimespan().valueOf() + this.dLength / GUI.DAY_WIDTH * Task.DAY_LENGTH_MILLIS));
     }
     this.dx = 0;
     this.dLength = 0;
@@ -126,7 +126,7 @@ class Task extends Component {
   }
 
   public getX(): number {
-    return this.getStart().valueOf() * Renderer.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
+    return this.getStart().valueOf() * GUI.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
   }
   public setX(x: number) {
     // Not implemented
@@ -140,7 +140,7 @@ class Task extends Component {
   }
 
   public getWidth(): number {
-    return this.getTimespan().valueOf() * Renderer.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
+    return this.getTimespan().valueOf() * GUI.DAY_WIDTH / Task.DAY_LENGTH_MILLIS;
   }
   public getHeight(): number {
     return this.height;
@@ -204,7 +204,7 @@ class Task extends Component {
     this.name = name;
   }
   public setClearingScore(cs: number) {
-    this.clearingScore = cs;
+    this.clearingScore = Math.min(Math.max(cs,0),100);
   }
   public addSubClearingScore(cs: number) {
     if (this.clearingScore + cs > 100) {

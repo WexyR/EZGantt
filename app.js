@@ -120,10 +120,11 @@ $(function () {
  														</p> \
 														 <button onclick="console.log(document.getElementById(\'task-creation-date\').value); \
 														 if(document.getElementById(\'task-creation-weight\').value<0) document.getElementById(\'task-creation-weight\').value=0; \
-														let t = new Task(undefined, Canvas.begin, document.getElementById(\'task-creation-name\').value, document.getElementById(\'task-creation-weight\').value); \
+														let t = new Task(undefined, renderer.selectedProject.projectStart, document.getElementById(\'task-creation-name\').value, document.getElementById(\'task-creation-weight\').value); \
 														t.setTimeDate(new Date(document.getElementById(\'task-creation-date\').value), undefined, new Duration(0, 0, 0, 0, 0, 1)); \
-														graph.registerComponent(t); \
-														graph.updateContext();">Créer</button>'
+														t.setTimeConstraint(TimeConstraint.Timespan);\
+														renderer.selectedProject.registerTask(t); \
+														renderer.updateContext();">Créer</button>'
 													]
 												}
 											},
@@ -201,5 +202,5 @@ var defaultProject = new Project(new Date("2019-05-07"));
 // Voir project.ts
 openTestProject(defaultProject);
 
-var renderer = new Renderer('graph');
+var renderer = new GUI('graph');
 renderer.selectedProject=defaultProject;
