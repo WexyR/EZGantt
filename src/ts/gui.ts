@@ -9,7 +9,7 @@ class GUI {
     private canvasId: string;
 
     // Permet de slide le panel (=rajouter un offset au rendu)
-    private renderOffsetX: number = 50;
+    private renderOffsetX: number = 25;
     private renderOffsetY: number = 0;
 
     /*// Le contenu du canvas. Component est une interface.

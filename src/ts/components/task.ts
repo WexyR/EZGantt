@@ -58,8 +58,8 @@ class Task extends Component {
   }
 
   onDragFinished(): void {
-    if(this.dx) this.dx=~~((this.dx/GUI.DAY_WIDTH)+0.5*this.dx/Math.abs(this.dx))*GUI.DAY_WIDTH;
-    if(this.dLength) this.dLength=~~((this.dLength/GUI.DAY_WIDTH)+0.5*this.dLength/Math.abs(this.dLength))*GUI.DAY_WIDTH;
+    if (this.dx) this.dx = ~~((this.dx / GUI.DAY_WIDTH) + 0.5 * this.dx / Math.abs(this.dx)) * GUI.DAY_WIDTH;
+    if (this.dLength) this.dLength = ~~((this.dLength / GUI.DAY_WIDTH) + 0.5 * this.dLength / Math.abs(this.dLength)) * GUI.DAY_WIDTH;
     if (this.timeConstraint == TimeConstraint.All) return;
     if (this.timeConstraint == TimeConstraint.Timespan) {
       this.setStart(new Duration(this.getStart().valueOf() + this.dx / GUI.DAY_WIDTH * Task.DAY_LENGTH_MILLIS));
@@ -74,21 +74,31 @@ class Task extends Component {
     // Background
     context.fillStyle = this.bgColor;
     let x = this.getX() + this.dx + offsetX;
+    let width = this.getWidth();
+
+    if (this.getTimeConstraint() == TimeConstraint.End) {
+      x += this.dLength;
+      width -= this.dLength;
+    } else {
+      width += this.dLength;
+    }
+
     let y = this.getY() + offsetY;
-    context.fillRect(x, y, (this.getWidth() + this.dLength), this.height);
+
+    context.fillRect(x, y, width, this.height);
     // Title
     context.fillStyle = "Black"
     context.font = this.fontSize + 'px mono';
-    context.fillText(this.name, x + (this.getWidth() + this.dLength) / 2 - this.name.length * 4, y + this.fontSize);
-    context.fillText("w:"+(String)(this.weight), x + (this.getWidth() + this.dLength) - (String(this.weight).length+3) * this.fontSize/2, y + this.fontSize);
+    context.fillText(this.name, x + width / 2 - this.name.length * 4, y + this.fontSize);
+    context.fillText("w:" + (String)(this.weight), x + width - (String(this.weight).length + 3) * this.fontSize / 2, y + this.fontSize);
     // Progress
-    context.fillText(this.clearingScore + "%", x + (this.getWidth() + this.dLength) / 2 - 12, y + 2 * this.height / 3 - this.fontSize / 2, 3 * (this.fontSize / 2));
+    context.fillText(this.clearingScore + "%", x + width / 2 - 12, y + 2 * this.height / 3 - this.fontSize / 2, 3 * (this.fontSize / 2));
     context.fillStyle = 'Green';
-    context.fillRect(x, y + 2 * this.height / 3, (this.getWidth() + this.dLength) / 100 * this.clearingScore, this.height / 6);
+    context.fillRect(x, y + 2 * this.height / 3, (width) / 100 * this.clearingScore, this.height / 6);
     // Stroke
     context.strokeStyle = 'Black'
-    context.strokeRect(x, y, (this.getWidth() + this.dLength), this.height);
-    context.strokeRect(x, y + 2 * this.height / 3, (this.getWidth() + this.dLength), this.height / 6);
+    context.strokeRect(x, y, width, this.height);
+    context.strokeRect(x, y + 2 * this.height / 3, width, this.height / 6);
     // Line
     context.strokeStyle = "LightGray";
     context.beginPath();
@@ -204,7 +214,7 @@ class Task extends Component {
     this.name = name;
   }
   public setClearingScore(cs: number) {
-    this.clearingScore = Math.min(Math.max(cs,0),100);
+    this.clearingScore = Math.min(Math.max(cs, 0), 100);
   }
   public addSubClearingScore(cs: number) {
     if (this.clearingScore + cs > 100) {
@@ -247,7 +257,7 @@ class Task extends Component {
       if (d.is_negative()) {
         //We try to move each predecessor
         for (let pred of this.predecessors) { // if collision
-          if(start.valueOf()<pred.end.valueOf()){
+          if (start.valueOf() < pred.end.valueOf()) {
             let newEnd: Duration = new Duration(start.valueOf());
             //And if it's not possible, we break on -1
             if (pred.setEnd(newEnd) === -1) {
@@ -332,7 +342,7 @@ class Task extends Component {
       if (!d.is_negative()) {
         //We try to move each sucessor
         for (let succ of this.successors) {
-          if(end.valueOf()>succ.start.valueOf()){ // if collsion
+          if (end.valueOf() > succ.start.valueOf()) { // if collsion
             let newStart: Duration = new Duration(end.valueOf());
             //And if it's not possible, we break on -1
             if (succ.setStart(newStart) === -1) {
@@ -404,7 +414,7 @@ class Task extends Component {
 
     if (this.timeConstraint !== TimeConstraint.All && this.timeConstraint !== TimeConstraint.Timespan && !timespan.is_negative()) {
 
-      let d: Duration = new Duration(timespan.valueOf()-this.timespan.valueOf());
+      let d: Duration = new Duration(timespan.valueOf() - this.timespan.valueOf());
       if (this.timeConstraint === TimeConstraint.End) {
         let newStart: Duration = new Duration(this.start.valueOf() + d.valueOf());
         // if the end is fixed and we change the timespan, the start has to be recalculated
