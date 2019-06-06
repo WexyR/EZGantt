@@ -246,12 +246,10 @@ class Task extends Component {
         //We try to move each predecessor
         for (let pred of this.predecessors) { // if collision
           if(start.valueOf()<pred.end.valueOf()){
-            let newEnd: Duration = new Duration(pred.end.valueOf() + d.valueOf());
+            let newEnd: Duration = new Duration(start.valueOf());
             //And if it's not possible, we break on -1
-            if (newEnd.is_negative()) {
-              if (pred.setEnd(newEnd) === -1) {
-                return -1;
-              }
+            if (pred.setEnd(newEnd) === -1) {
+              return -1;
             }
           }
         }
@@ -333,12 +331,10 @@ class Task extends Component {
         //We try to move each sucessor
         for (let succ of this.successors) {
           if(end.valueOf()>succ.start.valueOf()){ // if collsion
-            let newStart: Duration = new Duration(succ.start.valueOf() + d.valueOf());
+            let newStart: Duration = new Duration(end.valueOf());
             //And if it's not possible, we break on -1
-            if (!newStart.is_negative()) {
-              if (succ.setStart(newStart) === -1) {
-                return -1;
-              }
+            if (succ.setStart(newStart) === -1) {
+              return -1;
             }
           }
         }
