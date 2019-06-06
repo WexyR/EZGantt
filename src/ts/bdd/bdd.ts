@@ -1,8 +1,8 @@
-import Dexie from 'dexie';
+/*import Dexie from 'dexie';
 import "dexie-export-import";
-import { saveAs } from 'file-saver';
+import { saveAs } from 'file-saver';*/
 
-
+/*
 export class EZGanttDatabase extends Dexie {
     //task: Dexie.Table<Task, number>;
     durations: Dexie.Table<IDuration, number>;
@@ -24,6 +24,7 @@ export class EZGanttDatabase extends Dexie {
     });
   }
 }
+*/
 /*
 Pour chaque classe on définit avec l'interface ce qui est visible (public)
 donc les attributs private ne peuvent être exportés.
@@ -92,12 +93,13 @@ export interface IAssignment {
 
 // Task ???
 
-
+/*
 var db = new EZGanttDatabase();
 db.durations.mapToClass(Duration);
 db.actors.mapToClass(Actor);
 db.assignments.mapToClass(Assignment);
 db.ressources.mapToClass(Ressource);
+*/
 //db.task.mapToClass(Task);
 
 /*
