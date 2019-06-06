@@ -246,13 +246,14 @@ class Task extends Component {
 
       if (d.is_negative()) {
         //We try to move each predecessor
-        for (let pred of this.predecessors) {
-          console.log(pred);
-          let newEnd: Duration = new Duration(pred.end.valueOf() + d.valueOf());
-          //And if it's not possible, we break on -1
-          if (newEnd.is_negative()) {
-            if (pred.setEnd(newEnd) === -1) {
-              return -1;
+        for (let pred of this.predecessors) { // if collision
+          if(start.valueOf()<pred.end.valueOf()){
+            let newEnd: Duration = new Duration(pred.end.valueOf() + d.valueOf());
+            //And if it's not possible, we break on -1
+            if (newEnd.is_negative()) {
+              if (pred.setEnd(newEnd) === -1) {
+                return -1;
+              }
             }
           }
         }
@@ -333,11 +334,13 @@ class Task extends Component {
       if (!d.is_negative()) {
         //We try to move each sucessor
         for (let succ of this.successors) {
-          let newStart: Duration = new Duration(succ.start.valueOf() + d.valueOf());
-          //And if it's not possible, we break on -1
-          if (!newStart.is_negative()) {
-            if (succ.setStart(newStart) === -1) {
-              return -1;
+          if(end.valueOf()>succ.start.valueOf()){ // if collsion
+            let newStart: Duration = new Duration(succ.start.valueOf() + d.valueOf());
+            //And if it's not possible, we break on -1
+            if (!newStart.is_negative()) {
+              if (succ.setStart(newStart) === -1) {
+                return -1;
+              }
             }
           }
         }
@@ -405,15 +408,15 @@ class Task extends Component {
 
     if (this.timeConstraint !== TimeConstraint.All && this.timeConstraint !== TimeConstraint.Timespan && !timespan.is_negative()) {
 
-      let d: Duration = new Duration(this.timespan.valueOf() - timespan.valueOf());
+      let d: Duration = new Duration(timespan.valueOf()-this.timespan.valueOf());
       if (this.timeConstraint === TimeConstraint.End) {
+        let newStart: Duration = new Duration(this.start.valueOf() + d.valueOf());
         // if the end is fixed and we change the timespan, the start has to be recalculated
-        let newStart: Duration = new Duration(this.start.valueOf() - d.valueOf());
         if (this.setStart(newStart) === -1) {
           return -1;
         };
       } else { //By default, moves the end
-        let newEnd: Duration = new Duration(this.end.valueOf() - d.valueOf());
+        let newEnd: Duration = new Duration(this.end.valueOf() + d.valueOf());
         if (this.setEnd(newEnd) === -1) {
           return -1;
         };
@@ -618,7 +621,7 @@ class Task extends Component {
   }
 
 }
-
+/*
 var begin: Date = new Date("2019-05-06");
 var t0: Task = new Task(undefined, begin, "t0");
 // tache debutant le 7 et durant une semaine
@@ -635,3 +638,4 @@ t1.setTimeConstraint(TimeConstraint.Timespan);
 //sous tache de 3jours au debut de t1
 var st1_1 = new Task(t1, undefined, "st1_1");
 st1_1.setTime(new Duration(0), undefined, new Duration(0, 0, 0, 0, 3, 0));
+*/
