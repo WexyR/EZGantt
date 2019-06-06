@@ -98,27 +98,33 @@ $(function () {
 												title: 'Créer nouvelle tache',
 												componentState: {
 													html: [
-														'<p>',
-														'<label for="task-creation-name">Nom tache</label> :',
-														'<input type="text" name="task-creation-name" id="task-creation-name" placeholder="Tache #1" required>',
-														'<span id="task-name-bubble"></span>',
-														'</p>',
-														'<p>',
-														'<label for="task-creation-date">Début Tache</label> :',
-														'<input type="date" name="task-creation-date" id="task-creation-date" required>',
-														'<span id="task-date-bubble"></span>',
-														'<br>',
-														'<input type="checkbox" id="task-creation-precision-mode" name="task-creation-precision-mode" checked>',
-														'<label for="task-creation-precision-mode">Précision élevée</label> : ',
-														//'<br>',
-														'	<input type="time" id="task-creation-precise-creation-time" enabled="" checked>',
-														'<script>document.getElementById("task-creation-precision-mode").onchange = function() {document.getElementById("task-creation-precise-creation-time").disabled = !this.checked;};</script>',
-														'</p>',
-														'<p>',
-														'<label for="task-creation-weight">Poids tache</label> :',
-														'<input type="number" name="task-creation-weight" id="task-creation-weight" value=10 min=0 max=255 required>',
-														'<span id="task-weight-bubble"></span>',
-														'</p>'
+ 														'<p> \
+ 														<label for="task-creation-name">Nom tache</label> : \
+ 														<input type="text" name="task-creation-name" id="task-creation-name" placeholder="Tache #1" value="Tache #1" required> \
+ 														<span id="task-name-bubble"></span> \
+ 														</p> \
+ 														<p> \
+ 														<label for="task-creation-date">Début Tache</label> : \
+ 														<input type="date" name="task-creation-date" id="task-creation-date" value="2019-06-03" required> \
+ 														<span id="task-date-bubble"></span> \
+ 														<br> \
+ 														<input type="checkbox" id="task-creation-precision-mode" name="task-creation-precision-mode" checked> \
+ 														<label for="task-creation-precision-mode">Précision élevée</label> :  \
+ 															<input type="time" id="task-creation-precise-creation-time" enabled="" checked> \
+ 														<script>document.getElementById("task-creation-precision-mode").onchange = function() {document.getElementById("task-creation-precise-creation-time").disabled = !this.checked;};</script> \
+ 														</p> \
+ 														<p> \
+ 														<label for="task-creation-weight">Poids tache</label> : \
+ 														<input type="number" name="task-creation-weight" id="task-creation-weight" value=10 min=0 max=255 required> \
+ 														<span id="task-weight-bubble"></span> \
+ 														</p> \
+														 <button onclick="console.log(document.getElementById(\'task-creation-date\').value); \
+														 if(document.getElementById(\'task-creation-weight\').value<0) document.getElementById(\'task-creation-weight\').value=0; \
+														let t = new Task(undefined, renderer.selectedProject.projectStart, document.getElementById(\'task-creation-name\').value, document.getElementById(\'task-creation-weight\').value); \
+														t.setTimeDate(new Date(document.getElementById(\'task-creation-date\').value), undefined, new Duration(0, 0, 0, 0, 0, 1)); \
+														t.setTimeConstraint(TimeConstraint.Timespan);\
+														renderer.selectedProject.registerTask(t); \
+														renderer.updateContext();">Créer</button>'
 													]
 												}
 											},
@@ -128,21 +134,7 @@ $(function () {
 												title: 'Modifier tache existante',
 												componentState: {
 													html: [
-														'<p>',
-														'<label for="task-name">Nom tache:</label> :',
-														'<input type="text" name="pseudo" id="pseudo" required>',
-														'<span id="task-name-bubble"></span>',
-														'</p>',
-														'<p>',
-														'<label for="task-name">Nom tache:</label> :',
-														'<input type="text" name="pseudo" id="pseudo" required>',
-														'<span id="task-name-bubble"></span>',
-														'</p>',
-														'<p>',
-														'<label for="task-name">Nom tache:</label> :',
-														'<input type="text" name="pseudo" id="pseudo" required>',
-														'<span id="task-name-bubble"></span>',
-														'</p>'
+ 														'<l id="modification-menu"><p>Selectionner une tache pour commencer</p></l>' // Utiliser innerHTML
 													]
 												}
 											}
@@ -194,10 +186,8 @@ $(function () {
 								'}'
 							],
 							html: [
-								//'<label for="name">Name<label>',
-								//'<input id="name" type="text"></input>',
-								'<canvas id="graph" width="600" height="400"></canvas>',
-								'<script>if(!graph.render()) graph.updateContext();</script>'
+								'<canvas id="graph" width="600" height="400"></canvas> \
+								<script>if(!renderer.render()) renderer.updateContext();</script>'
 							]
 						}
 					}
@@ -207,12 +197,10 @@ $(function () {
 	}
 });
 
-/*
-myLayout.on('tabCreated', function(tab){
-   tab.closeElement.off( 'click' ).click(function(){
-      if( confirm( 'You have unsaved changes, are you sure you want to close this tab' ) ) {
-         tab.contentItem.remove();
-      }
-   })
-})
-*/
+var defaultProject = new Project(new Date("2019-05-07"));
+
+// Voir project.ts
+openTestProject(defaultProject);
+
+var renderer = new GUI('graph');
+renderer.selectedProject=defaultProject;
