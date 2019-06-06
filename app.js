@@ -133,21 +133,7 @@ $(function () {
 												title: 'Modifier tache existante',
 												componentState: {
 													html: [
- 														'<p> \
- 														<label for="task-name">Nom tache:</label> : \
- 														<input type="text" name="pseudo" id="pseudo" required> \
- 														<span id="task-name-bubble"></span> \
- 														</p> \
- 														<p> \
- 														<label for="task-name">Nom tache:</label> : \
- 														<input type="text" name="pseudo" id="pseudo" required> \
- 														<span id="task-name-bubble"></span> \
- 														</p> \
- 														<p> \
- 														<label for="task-name">Nom tache:</label> : \
- 														<input type="text" name="pseudo" id="pseudo" required> \
- 														<span id="task-name-bubble"></span> \
- 														</p>'
+ 														'<p id="modification-menu">Selectionner une tache pour commencer</p>' // Utiliser innerHTML
 													]
 												}
 											}

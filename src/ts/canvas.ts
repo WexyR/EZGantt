@@ -30,6 +30,26 @@ class Canvas {
     public static readonly FONT_SIZE = 24;
     public static readonly LINE_HEIGHT = 28;
     public static readonly DAY_OF_THE_WEEK = ["L", "M", "M", "J", "V", "S", "D"]
+    public static readonly MODIFICATION_ENABLED =
+    '<p> \
+    <label for="task-modification-name">Nom tache</label> : \
+    <input type="text" name="task-modification-name" id="task-modification-name" placeholder="Tache #1" required> \
+    </p> \
+    <p> \
+    <label for="task-modification-weight">Poids</label> : \
+    <input type="number" name="task-modification-weight" id="task-modification-weight" required> \
+    </p> \
+    <p> \
+    <label for="task-modification-progress">Progression 1-100</label> : \
+    <input type="number" name="task-modification-progress" id="task-modification-progress" required> \
+    </p> \
+    <p> \
+    <label for="task-modification-predecessor">Prédecesseur</label> : \
+    <input type="text" name="task-modification-predecessor" id="task-modification-predecessor" required> \
+    </p>\
+    ';
+    //"Vous avez sélectionné ouno tash. Cherr élèèèèèève";
+    public static readonly MODIFICATION_DISABLED = "Selectionner une tache pour commencer";
 
     /**
      * Constructeur du gestionnaire de rendu d'un canvas d'id donné. Si à l'instant de la création aucun
@@ -90,9 +110,12 @@ class Canvas {
                     && this.mouseY > c.getY() + this.renderOffsetY && this.mouseY < c.getY() + c.getHeight() + this.renderOffsetY) {
                     c.isBeingDragged = true;
                     this.haveDraggedComponent = true;
+                    document.getElementById("modification-menu").innerHTML=Canvas.MODIFICATION_ENABLED;
                     return;
                 }
             }
+            document.getElementById("modification-menu").innerHTML=Canvas.MODIFICATION_DISABLED;
+            document.getElementById("modification-menu").innerHTML+="";
             this.isDragged = true;
         };
         this.canvas.onmouseup = (e: MouseEvent) => {
@@ -130,6 +153,7 @@ class Canvas {
 
                 if (this.isDragged) {
                     this.renderOffsetX += dx;
+                    this.renderOffsetY += dy;
                 } else {
                     for (let c of this.components) {
                         if (c.isBeingDragged) {
