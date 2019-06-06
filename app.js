@@ -120,7 +120,7 @@ $(function () {
  														</p> \
 														 <button onclick="console.log(document.getElementById(\'task-creation-date\').value); \
 														 if(document.getElementById(\'task-creation-weight\').value<0) document.getElementById(\'task-creation-weight\').value=0; \
-														let t = new Task(undefined, begin, document.getElementById(\'task-creation-name\').value, document.getElementById(\'task-creation-weight\').value); \
+														let t = new Task(undefined, Canvas.begin, document.getElementById(\'task-creation-name\').value, document.getElementById(\'task-creation-weight\').value); \
 														t.setTimeDate(new Date(document.getElementById(\'task-creation-date\').value), undefined, new Duration(0, 0, 0, 0, 0, 1)); \
 														graph.registerComponent(t); \
 														graph.updateContext();">Créer</button>'
@@ -133,7 +133,7 @@ $(function () {
 												title: 'Modifier tache existante',
 												componentState: {
 													html: [
- 														'<p id="modification-menu">Selectionner une tache pour commencer</p>' // Utiliser innerHTML
+ 														'<l id="modification-menu"><p>Selectionner une tache pour commencer</p></l>' // Utiliser innerHTML
 													]
 												}
 											}
@@ -186,7 +186,7 @@ $(function () {
 							],
 							html: [
 								'<canvas id="graph" width="600" height="400"></canvas> \
-								<script>if(!graph.render()) graph.updateContext();</script>'
+								<script>if(!renderer.render()) renderer.updateContext();</script>'
 							]
 						}
 					}
@@ -196,12 +196,10 @@ $(function () {
 	}
 });
 
-/*
-myLayout.on('tabCreated', function(tab){
-   tab.closeElement.off( 'click' ).click(function(){
-      if( confirm( 'You have unsaved changes, are you sure you want to close this tab' ) ) {
-         tab.contentItem.remove();
-      }
-   })
-})
-*/
+var defaultProject = new Project(new Date("2019-05-07"));
+
+// Voir project.ts
+openTestProject(defaultProject);
+
+var renderer = new Renderer('graph');
+renderer.selectedProject=defaultProject;
