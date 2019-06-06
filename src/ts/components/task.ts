@@ -63,7 +63,7 @@ class Task extends Component {
       this.setStart(new Duration(this.getStart().valueOf() + this.dx / Canvas.DAY_WIDTH * Task.DAY_LENGTH_MILLIS));
     } else {
       console.log(this.timeConstraint);
-      console.log(this.setTimespan(new Duration(this.getTimespan().valueOf() + this.dx / Canvas.DAY_WIDTH * Task.DAY_LENGTH_MILLIS)));
+      console.log(this.setTimespan(new Duration(this.getTimespan().valueOf() + this.dLength / Canvas.DAY_WIDTH * Task.DAY_LENGTH_MILLIS)));
     }
     this.dx = 0;
     this.dLength = 0;
