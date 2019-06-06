@@ -86,7 +86,7 @@ class Canvas {
 
             // test each components to see if mouse is inside
             for (let c of this.components) {
-                if (this.mouseX > c.getX() + this.renderOffsetX && this.mouseX < c.getX() + c.getWidth() + this.renderOffsetX
+                if (this.mouseX > c.getX() + this.renderOffsetX - 5 && this.mouseX < c.getX() + c.getWidth() + this.renderOffsetX + 5
                     && this.mouseY > c.getY() + this.renderOffsetY && this.mouseY < c.getY() + c.getHeight() + this.renderOffsetY) {
                     c.isBeingDragged = true;
                     this.haveDraggedComponent = true;
